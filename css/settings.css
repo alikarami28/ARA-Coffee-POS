@@ -1,0 +1,10 @@
+.settings-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+.settings-section { background: var(--bg-card); border: 2px solid var(--glass-border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; }
+.settings-section h2 { font-size: 1.2rem; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--glass-border); color: var(--color-primary); }
+.form-row { margin-bottom: 16px; }
+.form-row label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); }
+.form-input { width: 100%; padding: 10px 14px; border: 2px solid var(--glass-border); border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-primary); font-family: 'Inter', sans-serif; box-sizing: border-box; }
+.form-input:focus { outline: none; border-color: var(--color-primary); }
+select.form-input { cursor: pointer; }
+.button-row { display: flex; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 768px) { .settings-container { padding: 12px; } }
