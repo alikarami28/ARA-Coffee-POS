@@ -1,0 +1,18 @@
+# فایل‌های سیستمی
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# فایل‌های ویرایشگر
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# فایل‌های موقت
+*.log
+*.tmp
+.cache/
+
+# node_modules (اگه استفاده می‌کنی)
+node_modules/
