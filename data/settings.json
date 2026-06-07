@@ -1,9 +1,9 @@
 {
   "cafeName": "ARA Coffee",
-  "address": "",
-  "phone": "",
+  "address": "تهران خیابان آذربایجان",
+  "phone": "۰۹۹۲۸۹۹۱۲۷۴",
   "instagram": "",
-  "website": "",
+  "website": "https://ara-coffee-pos.vercel.app",
   "currency": "تومان",
   "taxRate": 10,
   "discountPercent": 10,
