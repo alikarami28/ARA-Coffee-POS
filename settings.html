@@ -110,9 +110,20 @@
                     <div class="form-row">
                         <label for="tax-rate">🧾 نرخ مالیات (%)</label>
                         <input type="number" id="tax-rate" class="form-input" 
-                               value="9" min="0" max="100" step="0.5">
+                               value="10" min="0" max="100" step="0.5">
                         <small style="color: var(--text-light); display: block; margin-top: 4px;">
-                            💡 معمولاً ۹٪ مالیات بر ارزش افزوده
+                            💡 مالیات بر ارزش افزوده - روی قیمت اصلی محاسبه می‌شود (پیش‌فرض: ۱۰٪)
+                        </small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="discount-percent-setting">🏷️ تخفیف سراسری (%)</label>
+                        <input type="number" id="discount-percent-setting" class="form-input" 
+                               value="0" min="0" max="100" step="0.5">
+                        <small style="color: var(--text-light); display: block; margin-top: 4px;">
+                            💡 این تخفیف روی تمام فاکتورها اعمال می‌شود (۰ = بدون تخفیف)
+                            <br>
+                            📌 تخفیف دستی در صفحه صندوق اولویت دارد
                         </small>
                     </div>
                 </div>
@@ -135,9 +146,33 @@
                     <h2>🔗 تنظیمات GitHub (ذخیره‌سازی ابری)</h2>
                     
                     <div class="form-row">
-                        <label for="github-token">🔑 GitHub Personal Access Token</label>
+                        <label for="github-owner">👤 نام کاربری GitHub</label>
+                        <input type="text" id="github-owner" class="form-input" 
+                               placeholder="مثال: alikarami28">
+                        <small style="color: var(--text-light);">
+                            از آدرس مخزن: https://github.com/<strong>USERNAME</strong>/repo
+                        </small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="github-repo">📁 نام مخزن</label>
+                        <input type="text" id="github-repo" class="form-input" 
+                               placeholder="مثال: ARA-Coffee-POS" value="ARA-Coffee-POS">
+                        <small style="color: var(--text-light);">
+                            از آدرس مخزن: https://github.com/username/<strong>REPO-NAME</strong>
+                        </small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="github-branch">🌿 برنچ</label>
+                        <input type="text" id="github-branch" class="form-input" 
+                               placeholder="main" value="main">
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="github-token">🔑 توکن دسترسی</label>
                         <input type="password" id="github-token" class="form-input" 
-                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
                         <small style="color: var(--text-light); display: block; margin-top: 4px;">
                             📝 از 
                             <a href="https://github.com/settings/tokens" target="_blank" 
@@ -149,15 +184,6 @@
                             ⚠️ تیک <strong>repo</strong> رو حتماً بزنید
                             <br>
                             ⚠️ توکن فقط یکبار نمایش داده میشه، کپی کنید!
-                        </small>
-                    </div>
-                    
-                    <div class="form-row">
-                        <label for="webapp-url">🔗 Google Apps Script URL (اختیاری)</label>
-                        <input type="text" id="webapp-url" class="form-input" 
-                               placeholder="https://script.google.com/macros/s/XXXXXX/exec">
-                        <small style="color: var(--text-light); display: block; margin-top: 4px;">
-                            💡 برای نوشتن مستقیم در Google Sheets (اختیاری)
                         </small>
                     </div>
                     
