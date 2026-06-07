@@ -1,4 +1,9 @@
-/* === POS Page Styles === */
+/* ==========================================
+   ARA Coffee - POS Page Styles
+   Mobile-First Responsive Design
+   ========================================== */
+
+/* === POS Main Layout === */
 .pos-main {
     display: grid;
     grid-template-columns: 1fr 380px;
@@ -8,19 +13,23 @@
     overflow: hidden;
 }
 
-/* === Products Section === */
+/* ==========================================
+   PRODUCTS SECTION
+   ========================================== */
 .products-section {
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
+/* Category Tabs */
 .category-tabs-container {
     overflow-x: auto;
     padding: 8px 0;
     margin-bottom: 16px;
     scrollbar-width: thin;
     scrollbar-color: var(--color-primary) transparent;
+    -webkit-overflow-scrolling: touch;
 }
 
 .category-tabs-container::-webkit-scrollbar {
@@ -50,6 +59,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
     font-weight: 500;
+    flex-shrink: 0;
 }
 
 .category-tab:hover {
@@ -64,6 +74,7 @@
     box-shadow: var(--shadow-md);
 }
 
+/* Products Grid */
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -71,6 +82,7 @@
     overflow-y: auto;
     padding: 8px;
     flex: 1;
+    align-content: start;
 }
 
 .product-card {
@@ -144,7 +156,9 @@
     font-size: 1.1rem;
 }
 
-/* === Cart Section === */
+/* ==========================================
+   CART SECTION
+   ========================================== */
 .cart-section {
     display: flex;
     flex-direction: column;
@@ -153,6 +167,7 @@
     border-radius: var(--radius-xl);
     border: 2px solid var(--glass-border);
     box-shadow: var(--shadow-md);
+    overflow: hidden;
 }
 
 .cart-header {
@@ -162,6 +177,7 @@
     margin-bottom: 20px;
     padding-bottom: 16px;
     border-bottom: 2px solid var(--glass-border);
+    flex-shrink: 0;
 }
 
 .cart-header h2 {
@@ -173,6 +189,7 @@
     flex: 1;
     overflow-y: auto;
     margin-bottom: 16px;
+    min-height: 0;
 }
 
 .cart-item {
@@ -186,6 +203,7 @@
 
 .item-details {
     flex: 1;
+    min-width: 0;
 }
 
 .item-name {
@@ -205,6 +223,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .qty-btn {
@@ -256,6 +275,7 @@
     font-size: 0.95rem;
     min-width: 80px;
     text-align: left;
+    flex-shrink: 0;
 }
 
 .empty-cart {
@@ -265,9 +285,11 @@
     font-size: 0.95rem;
 }
 
+/* Cart Footer */
 .cart-footer {
     border-top: 2px solid var(--glass-border);
     padding-top: 16px;
+    flex-shrink: 0;
 }
 
 .cart-summary {
@@ -291,6 +313,35 @@
     border-top: 2px solid var(--glass-border);
 }
 
+/* Discount Section */
+.discount-section {
+    margin: 12px 0;
+    padding: 10px;
+    background: rgba(231, 76, 60, 0.05);
+    border-radius: 8px;
+    border: 1px dashed #e74c3c;
+}
+
+.discount-section input {
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-sm {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    color: #fff;
+}
+
+/* Payment Methods */
 .payment-methods {
     display: flex;
     gap: 16px;
@@ -314,32 +365,323 @@
     border-color: var(--color-primary);
 }
 
-.radio-label input[type="radio"]:checked + span {
-    color: var(--color-primary);
-}
-
 .radio-label:has(input:checked) {
     border-color: var(--color-primary);
     background: rgba(139, 69, 19, 0.05);
 }
 
-/* === Responsive POS === */
+/* ==========================================
+   RESPONSIVE - TABLET (768px - 1024px)
+   ========================================== */
 @media (max-width: 1024px) {
     .pos-main {
         grid-template-columns: 1fr;
         height: auto;
         padding: 12px;
-    }
-    
-    .cart-section {
-        position: sticky;
-        bottom: 0;
-        max-height: 50vh;
-        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        gap: 12px;
     }
     
     .products-grid {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
         gap: 12px;
+        max-height: none;
     }
+    
+    .cart-section {
+        position: sticky;
+        bottom: 0;
+        max-height: 45vh;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        z-index: 50;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    }
+    
+    .cart-items {
+        max-height: 150px;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE (up to 768px)
+   ========================================== */
+@media (max-width: 768px) {
+    .pos-main {
+        padding: 8px;
+        gap: 8px;
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        padding-bottom: 350px; /* فضای سبد خرید */
+    }
+    
+    /* Header compact */
+    .app-header {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .header-left {
+        flex: 1;
+        min-width: auto;
+    }
+    
+    .header-center {
+        order: 3;
+        width: 100%;
+    }
+    
+    .search-box input {
+        min-width: auto;
+        width: 100%;
+        padding: 8px 35px 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .cafe-name {
+        font-size: 1rem;
+    }
+    
+    .logo-img {
+        width: 32px;
+        height: 32px;
+    }
+    
+    /* Category tabs */
+    .category-tabs-container {
+        margin-bottom: 8px;
+    }
+    
+    .category-tab {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+    }
+    
+    /* Products grid */
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 8px;
+        padding: 4px;
+    }
+    
+    .product-image {
+        height: 80px;
+    }
+    
+    .product-info {
+        padding: 8px;
+    }
+    
+    .product-info h3 {
+        font-size: 0.75rem;
+    }
+    
+    .price {
+        font-size: 0.85rem;
+    }
+    
+    /* Cart section - Fixed bottom */
+    .cart-section {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-height: 55vh;
+        border-radius: 20px 20px 0 0;
+        z-index: 100;
+        padding: 16px;
+        box-shadow: 0 -4px 30px rgba(0,0,0,0.25);
+        transition: max-height 0.3s ease;
+    }
+    
+    .cart-header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+    
+    .cart-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .cart-items {
+        max-height: 120px;
+    }
+    
+    .cart-item {
+        padding: 8px 0;
+        gap: 8px;
+    }
+    
+    .item-name {
+        font-size: 0.8rem;
+    }
+    
+    .item-price {
+        font-size: 0.7rem;
+    }
+    
+    .qty-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 1rem;
+    }
+    
+    .qty-value {
+        font-size: 0.85rem;
+        min-width: 20px;
+    }
+    
+    .item-total {
+        font-size: 0.85rem;
+        min-width: 60px;
+    }
+    
+    .cart-summary {
+        margin-bottom: 8px;
+    }
+    
+    .summary-row {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+    
+    .summary-row.total-row {
+        font-size: 1rem;
+    }
+    
+    .discount-section {
+        padding: 8px;
+        margin: 8px 0;
+    }
+    
+    .discount-section input {
+        padding: 4px;
+        font-size: 0.75rem;
+        width: 45px;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+    
+    .payment-methods {
+        gap: 8px;
+        margin: 8px 0;
+    }
+    
+    .radio-label {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .btn-primary.btn-block {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE - SMALL MOBILE (up to 480px)
+   ========================================== */
+@media (max-width: 480px) {
+    .pos-main {
+        padding: 4px;
+        gap: 4px;
+        padding-bottom: 320px;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        padding: 2px;
+    }
+    
+    .product-image {
+        height: 70px;
+    }
+    
+    .product-info h3 {
+        font-size: 0.7rem;
+    }
+    
+    .price {
+        font-size: 0.75rem;
+    }
+    
+    .cart-section {
+        max-height: 50vh;
+        padding: 12px;
+    }
+    
+    .cart-items {
+        max-height: 100px;
+    }
+    
+    .category-tab {
+        padding: 6px 10px;
+        font-size: 0.7rem;
+    }
+}
+
+/* ==========================================
+   CART TOGGLE BUTTON (Mobile Only)
+   ========================================== */
+.cart-toggle-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 101;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(139, 69, 19, 0.4);
+    font-family: 'Inter', sans-serif;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-5px); }
+}
+
+@media (max-width: 768px) {
+    .cart-toggle-btn {
+        display: block;
+    }
+    
+    .cart-section.collapsed {
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        overflow: hidden;
+        border: none;
+    }
+}
+
+/* ==========================================
+   SCROLLBAR STYLES
+   ========================================== */
+.cart-items::-webkit-scrollbar,
+.products-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.cart-items::-webkit-scrollbar-thumb,
+.products-grid::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 2px;
+}
+
+.cart-items::-webkit-scrollbar-track,
+.products-grid::-webkit-scrollbar-track {
+    background: transparent;
 }
