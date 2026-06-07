@@ -1,5 +1,5 @@
-// app.js - Main Application Controller (Complete)
-// Version: 5.0 - All features working
+// app.js - Main Application Controller (Complete with Discount)
+// Version: 6.0
 
 class ARAApp {
     constructor() {
@@ -13,13 +13,11 @@ class ARAApp {
         try {
             console.log('🚀 ARAApp initializing for:', this.currentPage);
             
-            // Apply theme first
             if (typeof UI !== 'undefined') {
                 UI.applySavedTheme();
                 UI.updateDateTime();
             }
             
-            // Check auth (except login page)
             if (this.currentPage !== 'login') {
                 if (typeof AuthManager !== 'undefined' && !AuthManager.isLoggedIn()) {
                     console.log('🔒 Not logged in, redirecting...');
@@ -29,72 +27,38 @@ class ARAApp {
                 console.log('✅ User authenticated');
             }
 
-            // Initialize UI components
             if (typeof UI !== 'undefined') {
                 UI.displayUserInfo();
                 UI.setupShortcuts();
             }
             
-            // Initialize sidebar navigation
             this.initSideNavigation();
-            
-            // Initialize logout button
             this.initLogoutButton();
 
-            // Route to page-specific logic
             console.log('🔀 Routing to:', this.currentPage);
             
             switch (this.currentPage) {
                 case 'login':
-                    if (typeof AuthManager !== 'undefined') {
-                        AuthManager.initLoginForm();
-                    }
+                    if (typeof AuthManager !== 'undefined') AuthManager.initLoginForm();
                     break;
-                    
                 case 'pos':
                     await this.initPOSPage();
                     break;
-                    
                 case 'admin':
-                    if (typeof AdminPanel !== 'undefined') {
-                        await AdminPanel.init();
-                    } else {
-                        console.error('❌ AdminPanel not found');
-                    }
+                    if (typeof AdminPanel !== 'undefined') await AdminPanel.init();
                     break;
-                    
                 case 'orders':
-                    if (typeof OrderHistory !== 'undefined') {
-                        await OrderHistory.init();
-                    } else {
-                        console.error('❌ OrderHistory not found');
-                    }
+                    if (typeof OrderHistory !== 'undefined') await OrderHistory.init();
                     break;
-                    
                 case 'reports':
-                    if (typeof ReportManager !== 'undefined') {
-                        await ReportManager.init();
-                    } else {
-                        console.error('❌ ReportManager not found');
-                    }
+                    if (typeof ReportManager !== 'undefined') await ReportManager.init();
                     break;
-                    
                 case 'settings':
-                    if (typeof SettingsPage !== 'undefined') {
-                        SettingsPage.init();
-                    } else {
-                        console.error('❌ SettingsPage not found');
-                    }
+                    if (typeof SettingsPage !== 'undefined') SettingsPage.init();
                     break;
-                    
                 case 'menu':
-                    if (typeof MenuPage !== 'undefined') {
-                        await MenuPage.init();
-                    } else {
-                        console.error('❌ MenuPage not found');
-                    }
+                    if (typeof MenuPage !== 'undefined') await MenuPage.init();
                     break;
-                    
                 default:
                     console.warn('⚠️ Unknown page:', this.currentPage);
             }
@@ -103,33 +67,24 @@ class ARAApp {
             
         } catch (error) {
             console.error('❌ Init error:', error);
-            if (typeof UI !== 'undefined') {
-                UI.showToast('error', 'خطا در راه‌اندازی: ' + error.message);
-            }
+            if (typeof UI !== 'undefined') UI.showToast('error', 'خطا در راه‌اندازی: ' + error.message);
         }
     }
 
-    // ==================== SIDEBAR NAVIGATION ====================
+    // ==================== SIDEBAR ====================
     initSideNavigation() {
         const menuToggle = document.getElementById('menu-toggle');
         const sideNav = document.getElementById('side-nav');
         const overlay = document.getElementById('side-nav-overlay');
         
-        if (!menuToggle || !sideNav) {
-            console.warn('⚠️ Menu elements not found');
-            return;
-        }
+        if (!menuToggle || !sideNav) return;
 
-        console.log('✅ Sidebar initialized');
-
-        // Toggle menu
         menuToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             sideNav.classList.toggle('open');
             if (overlay) overlay.classList.toggle('active');
         });
 
-        // Close on overlay click
         if (overlay) {
             overlay.addEventListener('click', () => {
                 sideNav.classList.remove('open');
@@ -137,7 +92,6 @@ class ARAApp {
             });
         }
 
-        // Close on link click
         sideNav.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', () => {
                 sideNav.classList.remove('open');
@@ -145,19 +99,8 @@ class ARAApp {
             });
         });
 
-        // Close on Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && sideNav.classList.contains('open')) {
-                sideNav.classList.remove('open');
-                if (overlay) overlay.classList.remove('active');
-            }
-        });
-
-        // Close on click outside
-        document.addEventListener('click', (e) => {
-            if (sideNav.classList.contains('open') && 
-                !sideNav.contains(e.target) && 
-                e.target !== menuToggle) {
                 sideNav.classList.remove('open');
                 if (overlay) overlay.classList.remove('active');
             }
@@ -166,19 +109,16 @@ class ARAApp {
 
     // ==================== LOGOUT ====================
     initLogoutButton() {
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                if (confirm('آیا از خروج اطمینان دارید؟')) {
-                    if (typeof AuthManager !== 'undefined') {
-                        AuthManager.logout();
-                    } else {
-                        localStorage.removeItem('ara_session');
-                        window.location.href = '/login.html';
-                    }
+        document.getElementById('logout-btn')?.addEventListener('click', () => {
+            if (confirm('آیا از خروج اطمینان دارید؟')) {
+                if (typeof AuthManager !== 'undefined') {
+                    AuthManager.logout();
+                } else {
+                    localStorage.removeItem('ara_session');
+                    window.location.href = '/login.html';
                 }
-            });
-        }
+            }
+        });
     }
 
     // ==================== POS PAGE ====================
@@ -200,32 +140,21 @@ class ARAApp {
         const loadCategories = async () => {
             try {
                 let cats = [];
-                
-                // Try DB first
                 if (typeof DB !== 'undefined') {
                     cats = await DB.getCategories();
-                    console.log('📂 Categories from DB:', cats.length);
                 }
-                
-                // Fallback to direct GitHub fetch
                 if (cats.length === 0) {
                     try {
                         const owner = localStorage.getItem('ara_github_owner') || 'alikarami28';
                         const repo = localStorage.getItem('ara_github_repo') || 'ARA-Coffee-POS';
                         const branch = localStorage.getItem('ara_github_branch') || 'main';
-                        
                         const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/data/categories.json?t=${Date.now()}`;
-                        console.log('🌐 Fetching categories:', url);
-                        
                         const response = await fetch(url);
                         if (response.ok) {
                             const data = await response.json();
                             cats = data.categories || [];
-                            console.log('📂 Categories from direct fetch:', cats.length);
                         }
-                    } catch (directError) {
-                        console.warn('Direct fetch failed:', directError.message);
-                    }
+                    } catch (e) {}
                 }
                 
                 const container = document.getElementById('category-tabs');
@@ -246,7 +175,6 @@ class ARAApp {
                         filterProducts();
                     });
                 });
-                
             } catch (e) {
                 console.error('Error loading categories:', e);
             }
@@ -255,33 +183,23 @@ class ARAApp {
         // ========== LOAD PRODUCTS ==========
         const loadProducts = async () => {
             try {
-                // Try DB first
                 if (typeof DB !== 'undefined') {
                     allProducts = await DB.getProducts();
-                    console.log('📦 Products from DB:', allProducts.length);
                 }
-                
-                // If empty, try direct GitHub fetch
                 if (allProducts.length === 0) {
                     try {
                         const owner = localStorage.getItem('ara_github_owner') || 'alikarami28';
                         const repo = localStorage.getItem('ara_github_repo') || 'ARA-Coffee-POS';
                         const branch = localStorage.getItem('ara_github_branch') || 'main';
-                        
                         const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/data/products.json?t=${Date.now()}`;
-                        console.log('🌐 Fetching products:', url);
-                        
                         const response = await fetch(url);
                         if (response.ok) {
                             const data = await response.json();
                             allProducts = data.products || [];
-                            console.log('📦 Products from direct fetch:', allProducts.length);
                         }
-                    } catch (directError) {
-                        console.warn('Direct fetch failed:', directError.message);
-                    }
+                    } catch (e) {}
                 }
-                
+                console.log('📦 Products loaded:', allProducts.length);
                 renderProducts(allProducts);
             } catch (e) {
                 console.error('Error loading products:', e);
@@ -316,26 +234,17 @@ class ARAApp {
             productGrid.querySelectorAll('.product-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const product = allProducts.find(p => p.id === card.dataset.pid);
-                    if (product && typeof Cart !== 'undefined') {
-                        Cart.addItem(product);
-                    }
+                    if (product && typeof Cart !== 'undefined') Cart.addItem(product);
                 });
             });
         };
 
-        // ========== FILTER PRODUCTS ==========
+        // ========== FILTER ==========
         const filterProducts = () => {
             let filtered = [...allProducts].filter(p => p.isActive !== false);
-            
-            if (activeCategoryId) {
-                filtered = filtered.filter(p => p.categoryId === activeCategoryId);
-            }
-            
+            if (activeCategoryId) filtered = filtered.filter(p => p.categoryId === activeCategoryId);
             const search = document.getElementById('pos-search')?.value?.trim()?.toLowerCase();
-            if (search) {
-                filtered = filtered.filter(p => p.name.toLowerCase().includes(search));
-            }
-            
+            if (search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search));
             renderProducts(filtered);
         };
 
@@ -343,9 +252,8 @@ class ARAApp {
         if (typeof Cart !== 'undefined') {
             Cart.onChange((ev, data) => {
                 if (ev === 'change') {
-                    const { items, subtotal, taxRate } = data;
-                    const tax = (subtotal * taxRate) / 100;
-                    const total = subtotal + tax;
+                    const { items, subtotalOriginal, taxAmount, discountAmount, finalAmount } = data;
+                    const hasDiscount = discountAmount > 0;
                     
                     if (items.length === 0) {
                         cartItemsContainer.innerHTML = '<p class="empty-cart">سبد خرید خالی است</p>';
@@ -355,6 +263,8 @@ class ARAApp {
                                 <div class="item-details">
                                     <span class="item-name">${item.productName}</span>
                                     <span class="item-price">${UI.formatCurrency(item.unitPrice)}</span>
+                                    ${item.discountedUnitPrice < item.unitPrice ? 
+                                        `<span style="color:#e74c3c;font-size:0.7rem;">${UI.formatCurrency(item.discountedUnitPrice)}</span>` : ''}
                                 </div>
                                 <div class="item-quantity">
                                     <button class="qty-btn dec" data-pid="${item.productId}">−</button>
@@ -362,41 +272,25 @@ class ARAApp {
                                     <button class="qty-btn inc" data-pid="${item.productId}">+</button>
                                     <button class="delete-btn" data-pid="${item.productId}">🗑️</button>
                                 </div>
-                                <span class="item-total">${UI.formatCurrency(item.totalPrice)}</span>
+                                <span class="item-total">${UI.formatCurrency(item.discountedTotal || item.totalPrice)}</span>
                             </div>
                         `).join('');
                         
-                        // Quantity buttons
                         cartItemsContainer.querySelectorAll('.qty-btn.inc').forEach(b => {
-                            b.onclick = (e) => { 
-                                e.stopPropagation(); 
-                                Cart.increaseQuantity(b.dataset.pid); 
-                            };
+                            b.onclick = (e) => { e.stopPropagation(); Cart.increaseQuantity(b.dataset.pid); };
                         });
                         cartItemsContainer.querySelectorAll('.qty-btn.dec').forEach(b => {
-                            b.onclick = (e) => { 
-                                e.stopPropagation(); 
-                                Cart.decreaseQuantity(b.dataset.pid); 
-                            };
+                            b.onclick = (e) => { e.stopPropagation(); Cart.decreaseQuantity(b.dataset.pid); };
                         });
                         cartItemsContainer.querySelectorAll('.delete-btn').forEach(b => {
-                            b.onclick = (e) => { 
-                                e.stopPropagation(); 
-                                Cart.removeItem(b.dataset.pid); 
-                            };
+                            b.onclick = (e) => { e.stopPropagation(); Cart.removeItem(b.dataset.pid); };
                         });
                     }
                     
-                    // Update totals
-                    const subtotalEl = document.getElementById('subtotal-amount');
-                    const taxEl = document.getElementById('tax-amount');
-                    const discountEl = document.getElementById('discount-amount');
-                    const totalEl = document.getElementById('total-amount');
-                    
-                    if (subtotalEl) subtotalEl.textContent = UI.formatCurrency(subtotal);
-                    if (taxEl) taxEl.textContent = UI.formatCurrency(tax);
-                    if (discountEl) discountEl.textContent = UI.formatCurrency(0);
-                    if (totalEl) totalEl.textContent = UI.formatCurrency(total);
+                    document.getElementById('subtotal-amount').textContent = UI.formatCurrency(subtotalOriginal);
+                    document.getElementById('tax-amount').textContent = UI.formatCurrency(taxAmount);
+                    document.getElementById('discount-amount').textContent = hasDiscount ? '-' + UI.formatCurrency(discountAmount) : '۰ تومان';
+                    document.getElementById('total-amount').textContent = UI.formatCurrency(finalAmount);
                 }
             });
         }
@@ -408,13 +302,41 @@ class ARAApp {
         
         // Clear cart
         document.getElementById('clear-cart-btn')?.addEventListener('click', () => {
-            if (typeof Cart !== 'undefined') {
-                Cart.clearCart();
-                UI.showToast('info', 'سبد خرید خالی شد');
-            }
+            Cart?.clearCart();
+            document.getElementById('discount-percent').value = '';
+            document.getElementById('discount-amount-input').value = '';
+            UI.showToast('info', 'سبد خرید خالی شد');
         });
         
-        // Checkout button
+        // ========== DISCOUNT HANDLERS ==========
+        document.getElementById('apply-discount-percent')?.addEventListener('click', () => {
+            const percent = parseFloat(document.getElementById('discount-percent')?.value) || 0;
+            if (percent <= 0 || percent > 100) {
+                UI.showToast('warning', 'درصد تخفیف باید بین ۱ تا ۱۰۰ باشد');
+                return;
+            }
+            Cart.setDiscountPercent(percent);
+            UI.showToast('info', `🏷️ تخفیف ${percent}% اعمال شد`);
+        });
+
+        document.getElementById('apply-discount-amount')?.addEventListener('click', () => {
+            const amount = parseFloat(document.getElementById('discount-amount-input')?.value) || 0;
+            if (amount <= 0) {
+                UI.showToast('warning', 'مبلغ تخفیف باید بیشتر از صفر باشد');
+                return;
+            }
+            Cart.setDiscountAmount(amount);
+            UI.showToast('info', `🏷️ تخفیف ${UI.formatCurrency(amount)} اعمال شد`);
+        });
+
+        document.getElementById('remove-discount')?.addEventListener('click', () => {
+            Cart.removeDiscount();
+            document.getElementById('discount-percent').value = '';
+            document.getElementById('discount-amount-input').value = '';
+            UI.showToast('info', 'تخفیف حذف شد');
+        });
+        
+        // Checkout
         document.getElementById('checkout-btn')?.addEventListener('click', async () => {
             if (!Cart || Cart.getCartSummary().items.length === 0) {
                 UI.showToast('warning', 'سبد خرید خالی است');
@@ -430,6 +352,10 @@ class ARAApp {
                     PrintService.previewReceipt(order);
                 }
                 
+                // Clear discount inputs
+                document.getElementById('discount-percent').value = '';
+                document.getElementById('discount-amount-input').value = '';
+                
                 UI.showToast('success', `✅ سفارش ${order.invoiceNumber} ثبت شد`);
             } catch (e) {
                 UI.showToast('error', '❌ ' + e.message);
@@ -444,14 +370,8 @@ class ARAApp {
     }
 }
 
-// ==================== START APPLICATION ====================
+// ==================== START ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM ready, data-page:', document.body.getAttribute('data-page'));
     window.ARA_App = new ARAApp();
 });
-
-// ==================== EXPORT FOR GLOBAL ACCESS ====================
-// Make ARAApp available globally for debugging
-if (typeof window !== 'undefined') {
-    window.ARAApp = ARAApp;
-}
