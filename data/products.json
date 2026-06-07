@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-07T21:19:15.817Z",
+  "lastUpdated": "2026-06-07T22:35:34.688Z",
   "products": [
     {
       "id": "prod-1",
@@ -37,6 +37,18 @@
       "displayOrder": 0,
       "createdAt": "2024-01-01T00:00:00Z",
       "updatedAt": "2026-06-07T20:48:36.804Z"
+    },
+    {
+      "id": "prod-1780871734686-vkpw5",
+      "name": "موکا",
+      "categoryId": "cat-default-0",
+      "price": 215000,
+      "description": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780871730008-birnb.jpg",
+      "isActive": true,
+      "displayOrder": 3,
+      "createdAt": "2026-06-07T22:35:34.687Z",
+      "updatedAt": "2026-06-07T22:35:34.687Z"
     }
   ]
 }
