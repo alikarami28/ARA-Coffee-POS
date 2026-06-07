@@ -74,8 +74,8 @@
       "createdAt": "2026-06-07T20:48:56.933Z"
     },
     {
-      "id": "ord-1780865656248-xanco10kv",
-      "invoiceNumber": "ARA-20260608-0024-475",
+      "id": "ord-1780865728871-ja4z1curf",
+      "invoiceNumber": "ARA-20260608-0025-345",
       "items": [
         {
           "productId": "prod-1780858741899-ajse8",
@@ -83,17 +83,31 @@
           "unitPrice": 225000,
           "quantity": 2,
           "totalPrice": 450000
+        },
+        {
+          "productId": "prod-1",
+          "productName": "اسپرسو",
+          "unitPrice": 80000,
+          "quantity": 1,
+          "totalPrice": 80000
+        },
+        {
+          "productId": "prod-2",
+          "productName": "لاته",
+          "unitPrice": 195000,
+          "quantity": 1,
+          "totalPrice": 195000
         }
       ],
-      "subtotal": 450000,
+      "subtotal": 725000,
       "taxRate": 9,
-      "taxAmount": 40500,
+      "taxAmount": 65250,
       "discountRate": 0,
       "discountAmount": 0,
-      "finalAmount": 490500,
+      "finalAmount": 790250,
       "cashierId": "system",
       "paymentMethod": "Cash",
-      "createdAt": "2026-06-07T20:54:16.248Z"
+      "createdAt": "2026-06-07T20:55:28.871Z"
     }
   ]
 }
