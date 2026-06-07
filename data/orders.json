@@ -72,6 +72,28 @@
       "cashierId": "system",
       "paymentMethod": "Cash",
       "createdAt": "2026-06-07T20:48:56.933Z"
+    },
+    {
+      "id": "ord-1780865656248-xanco10kv",
+      "invoiceNumber": "ARA-20260608-0024-475",
+      "items": [
+        {
+          "productId": "prod-1780858741899-ajse8",
+          "productName": "آیس موکا",
+          "unitPrice": 225000,
+          "quantity": 2,
+          "totalPrice": 450000
+        }
+      ],
+      "subtotal": 450000,
+      "taxRate": 9,
+      "taxAmount": 40500,
+      "discountRate": 0,
+      "discountAmount": 0,
+      "finalAmount": 490500,
+      "cashierId": "system",
+      "paymentMethod": "Cash",
+      "createdAt": "2026-06-07T20:54:16.248Z"
     }
   ]
 }
