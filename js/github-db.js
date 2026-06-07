@@ -1,28 +1,23 @@
-// github-db.js - GitHub JSON Database
-// این فایل جایگزین storage.js میشه
+// github-db.js - GitHub JSON Database + SettingsManager
+// Version: 2.0 - Complete
 
+// ==================== GitHubDB Class ====================
 class GitHubDB {
     constructor() {
-        // ⚠️ این مقادیر رو با اطلاعات خودت جایگزین کن
-        this.OWNER = 'YOUR_GITHUB_USERNAME';      // نام کاربری GitHub
-        this.REPO = 'ARA-Coffee-POS';              // نام مخزن
-        this.BRANCH = 'main';                      // برنچ اصلی
-        this.BASE_PATH = 'data';                   // پوشه فایل‌های JSON
+        this.OWNER = 'YOUR_GITHUB_USERNAME';
+        this.REPO = 'ARA-Coffee-POS';
+        this.BRANCH = 'main';
+        this.BASE_PATH = 'data';
         
         this.API_URL = `https://api.github.com/repos/${this.OWNER}/${this.REPO}/contents/${this.BASE_PATH}`;
         this.RAW_URL = `https://raw.githubusercontent.com/${this.OWNER}/${this.REPO}/${this.BRANCH}/${this.BASE_PATH}`;
         
-        // کش برای کاهش درخواست‌ها
         this.cache = {};
-        this.cacheTime = 10000; // 10 ثانیه
+        this.cacheTime = 10000;
         
         console.log('📦 GitHubDB initialized');
-        console.log('📡 API:', this.API_URL);
-        console.log('🌐 RAW:', this.RAW_URL);
     }
 
-    // ==================== TOKEN ====================
-    
     _getToken() {
         return localStorage.getItem('ara_github_token') || '';
     }
@@ -39,10 +34,7 @@ class GitHubDB {
         return headers;
     }
 
-    // ==================== READ ====================
-    
     async read(fileName) {
-        // Check cache
         const cacheKey = fileName;
         if (this.cache[cacheKey] && (Date.now() - this.cache[cacheKey].time) < this.cacheTime) {
             console.log(`📦 ${fileName} from cache`);
@@ -55,16 +47,10 @@ class GitHubDB {
             
             const response = await fetch(url);
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
-            
-            // Update cache
             this.cache[cacheKey] = { data, time: Date.now() };
-            
-            // Backup to localStorage
             this._localSet(fileName, data);
             
             console.log(`✅ ${fileName} loaded from GitHub`);
@@ -72,16 +58,13 @@ class GitHubDB {
             
         } catch (error) {
             console.warn(`⚠️ GitHub failed for ${fileName}:`, error.message);
-            console.log(`📦 Loading ${fileName} from localStorage...`);
             
-            // Fallback to localStorage
             const localData = this._localGet(fileName);
             if (localData) {
                 this.cache[cacheKey] = { data: localData, time: Date.now() };
                 return localData;
             }
             
-            // Return defaults
             return this._getDefault(fileName);
         }
     }
@@ -105,8 +88,6 @@ class GitHubDB {
         return data?.orders || [];
     }
 
-    // ==================== WRITE ====================
-    
     async write(fileName, data) {
         const token = this._getToken();
         
@@ -117,10 +98,8 @@ class GitHubDB {
         }
 
         try {
-            const path = `${this.BASE_PATH}/${fileName}.json`;
             const url = `${this.API_URL}/${fileName}.json`;
             
-            // Get SHA if file exists
             let sha = null;
             try {
                 const checkRes = await fetch(url, { headers: this._getHeaders() });
@@ -128,15 +107,11 @@ class GitHubDB {
                     const fileInfo = await checkRes.json();
                     sha = fileInfo.sha;
                 }
-            } catch (e) {
-                // File doesn't exist yet
-            }
+            } catch (e) {}
 
-            // Prepare content
             const jsonStr = JSON.stringify(data, null, 2);
             const content = btoa(unescape(encodeURIComponent(jsonStr)));
 
-            // Create/Update file
             const body = {
                 message: `📝 Update ${fileName}.json - ${new Date().toLocaleString('fa-IR')}`,
                 content: content,
@@ -152,10 +127,8 @@ class GitHubDB {
             });
 
             if (response.ok) {
-                // Update cache and localStorage
                 this.cache[fileName] = { data, time: Date.now() };
                 this._localSet(fileName, data);
-                
                 console.log(`✅ ${fileName}.json saved to GitHub`);
                 return { success: true, message: 'Saved to GitHub ✅' };
             } else {
@@ -165,31 +138,26 @@ class GitHubDB {
             
         } catch (error) {
             console.error(`❌ GitHub write failed:`, error.message);
-            
-            // Save locally as fallback
             this._localSet(fileName, data);
             this.cache[fileName] = { data, time: Date.now() };
-            
             return { success: false, message: error.message };
         }
     }
 
     async saveProducts(products) {
-        const data = {
+        return this.write('products', {
             version: '1.0',
             lastUpdated: new Date().toISOString(),
             products: products
-        };
-        return this.write('products', data);
+        });
     }
 
     async saveCategories(categories) {
-        const data = {
+        return this.write('categories', {
             version: '1.0',
             lastUpdated: new Date().toISOString(),
             categories: categories
-        };
-        return this.write('categories', data);
+        });
     }
 
     async saveSettings(settings) {
@@ -197,15 +165,13 @@ class GitHubDB {
     }
 
     async saveOrders(orders) {
-        const data = {
+        return this.write('orders', {
             version: '1.0',
             orders: orders
-        };
-        return this.write('orders', data);
+        });
     }
 
-    // ==================== CRUD HELPERS ====================
-    
+    // CRUD Helpers
     async addProduct(product) {
         const products = await this.getProducts();
         products.push(product);
@@ -226,8 +192,7 @@ class GitHubDB {
 
     async deleteProduct(productId) {
         const products = await this.getProducts();
-        const filtered = products.filter(p => p.id !== productId);
-        await this.saveProducts(filtered);
+        await this.saveProducts(products.filter(p => p.id !== productId));
         return true;
     }
 
@@ -263,8 +228,7 @@ class GitHubDB {
 
     async deleteCategory(categoryId) {
         const categories = await this.getCategories();
-        const filtered = categories.filter(c => c.id !== categoryId);
-        await this.saveCategories(filtered);
+        await this.saveCategories(categories.filter(c => c.id !== categoryId));
         return true;
     }
 
@@ -275,8 +239,7 @@ class GitHubDB {
         return order;
     }
 
-    // ==================== LOCAL STORAGE ====================
-    
+    // Local Storage
     _localSet(key, data) {
         try {
             localStorage.setItem(`ara_${key}`, JSON.stringify(data));
@@ -310,19 +273,13 @@ class GitHubDB {
         }
     }
 
-    // ==================== TEST ====================
-    
     async testConnection() {
         const token = this._getToken();
-        if (!token) {
-            return { success: false, message: 'توکن وارد نشده است' };
-        }
+        if (!token) return { success: false, message: 'توکن وارد نشده است' };
 
         try {
             const url = `https://api.github.com/repos/${this.OWNER}/${this.REPO}`;
-            const response = await fetch(url, {
-                headers: this._getHeaders()
-            });
+            const response = await fetch(url, { headers: this._getHeaders() });
             
             if (response.ok) {
                 const repo = await response.json();
@@ -346,10 +303,74 @@ class GitHubDB {
     }
 }
 
-// ==================== INSTANCE ====================
+// ==================== Instance ====================
 const DB = new GitHubDB();
 
-// ==================== برای تست در Console ====================
-console.log('📦 GitHubDB ready! Use:');
-console.log('  DB.getProducts().then(console.log)');
-console.log('  DB.testConnection().then(console.log)');
+// ==================== SettingsManager ====================
+const SettingsManager = {
+    get(key, defaultValue = null) {
+        try {
+            const value = localStorage.getItem(`ara_${key}`);
+            if (value === null || value === undefined) return defaultValue;
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                return value;
+            }
+        } catch (error) {
+            return defaultValue;
+        }
+    },
+    
+    set(key, value) {
+        try {
+            localStorage.setItem(`ara_${key}`, JSON.stringify(value));
+        } catch (error) {
+            console.error(`Error setting ${key}:`, error);
+        }
+    },
+    
+    getAll() {
+        const settings = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('ara_')) {
+                try {
+                    const value = localStorage.getItem(key);
+                    if (value !== null) {
+                        settings[key.replace('ara_', '')] = JSON.parse(value);
+                    }
+                } catch (e) {
+                    localStorage.removeItem(key);
+                }
+            }
+        }
+        return settings;
+    },
+    
+    remove(key) {
+        localStorage.removeItem(`ara_${key}`);
+    },
+    
+    setDefaults() {
+        const defaults = {
+            cafeName: 'ARA Coffee',
+            currency: 'تومان',
+            taxRate: 9,
+            printerType: '58mm',
+            theme: 'light'
+        };
+        
+        for (const [key, value] of Object.entries(defaults)) {
+            if (this.get(key) === null) {
+                this.set(key, value);
+            }
+        }
+    }
+};
+
+// Set defaults
+SettingsManager.setDefaults();
+
+// ==================== Ready ====================
+console.log('✅ GitHubDB + SettingsManager ready');
