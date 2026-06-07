@@ -1,4 +1,41 @@
 {
   "version": "1.0",
-  "orders": []
+  "orders": [
+    {
+      "id": "ord-1780863626471-e44dczoax",
+      "invoiceNumber": "ARA-20260607-2350-252",
+      "items": [
+        {
+          "productId": "prod-1780858741899-ajse8",
+          "productName": "آیس موکا",
+          "unitPrice": 225000,
+          "quantity": 1,
+          "totalPrice": 225000
+        },
+        {
+          "productId": "prod-1",
+          "productName": "اسپرسو",
+          "unitPrice": 80000,
+          "quantity": 1,
+          "totalPrice": 80000
+        },
+        {
+          "productId": "prod-2",
+          "productName": "لاته",
+          "unitPrice": 195000,
+          "quantity": 1,
+          "totalPrice": 195000
+        }
+      ],
+      "subtotal": 500000,
+      "taxRate": 9,
+      "taxAmount": 45000,
+      "discountRate": 0,
+      "discountAmount": 0,
+      "finalAmount": 545000,
+      "cashierId": "system",
+      "paymentMethod": "Cash",
+      "createdAt": "2026-06-07T20:20:26.472Z"
+    }
+  ]
 }
