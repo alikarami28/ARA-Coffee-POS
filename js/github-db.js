@@ -1,9 +1,11 @@
-// github-db.js - نسخه اصلاح شده Write
+// github-db.js - GitHub ONLY Database (No localStorage)
+// Version: 5.0 - Pure GitHub
+
 class GitHubDB {
     constructor() {
         this.cache = {};
-        this.cacheTime = 5000;
-        console.log('📦 GitHubDB Ready');
+        this.cacheTime = 30000; // 30 ثانیه کش
+        console.log('📦 GitHubDB v5.0 - Pure GitHub Mode');
     }
 
     get OWNER() { return localStorage.getItem('ara_github_owner') || 'alikarami28'; }
@@ -15,113 +17,153 @@ class GitHubDB {
 
     _getHeaders() {
         const token = this._getToken();
-        const h = { 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
-        if (token) h['Authorization'] = 'Bearer ' + token;
-        return h;
+        const headers = {
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        return headers;
     }
 
-    // ==================== READ ====================
+    // ==================== READ FROM GITHUB ====================
     async read(fileName) {
-        // اول از localStorage
-        const local = this._localGet(fileName);
+        const cacheKey = fileName;
         
-        // در پس‌زمینه از GitHub آپدیت کن
-        this._fetchGH(fileName).then(data => {
-            if (data) {
-                this._localSet(fileName, data);
-                this.cache[fileName] = { data, time: Date.now() };
-            }
-        }).catch(() => {});
-        
-        if (local) return local;
-        
-        // اگه localStorage خالی بود
+        // Check cache first
+        if (this.cache[cacheKey] && (Date.now() - this.cache[cacheKey].time) < this.cacheTime) {
+            console.log(`📦 ${fileName} from cache`);
+            return this.cache[cacheKey].data;
+        }
+
         try {
-            const data = await this._fetchGH(fileName);
-            if (data) {
-                this._localSet(fileName, data);
-                return data;
+            // Read from GitHub Raw
+            const rawUrl = `https://raw.githubusercontent.com/${this.OWNER}/${this.REPO}/${this.BRANCH}/${this.BASE_PATH}/${fileName}.json?t=${Date.now()}`;
+            console.log(`🌐 Reading: ${rawUrl}`);
+            
+            const response = await fetch(rawUrl);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
-        } catch (e) {}
-        
-        return this._getDefault(fileName);
+            
+            const data = await response.json();
+            
+            // Update cache
+            this.cache[cacheKey] = { data, time: Date.now() };
+            
+            console.log(`✅ ${fileName} loaded from GitHub (${data?.products?.length || data?.categories?.length || '?'} items)`);
+            return data;
+            
+        } catch (error) {
+            console.error(`❌ Failed to read ${fileName} from GitHub:`, error.message);
+            
+            // Try API as fallback (for private repos with token)
+            try {
+                const token = this._getToken();
+                if (token) {
+                    const apiUrl = `https://api.github.com/repos/${this.OWNER}/${this.REPO}/contents/${this.BASE_PATH}/${fileName}.json`;
+                    console.log(`🔄 Trying API: ${apiUrl}`);
+                    
+                    const response = await fetch(apiUrl, { headers: this._getHeaders() });
+                    
+                    if (response.ok) {
+                        const fileData = await response.json();
+                        const content = decodeURIComponent(escape(atob(fileData.content)));
+                        const data = JSON.parse(content);
+                        
+                        this.cache[cacheKey] = { data, time: Date.now() };
+                        console.log(`✅ ${fileName} loaded via API`);
+                        return data;
+                    }
+                }
+            } catch (apiError) {
+                console.error('API fallback also failed:', apiError.message);
+            }
+            
+            // Return defaults if everything fails
+            return this._getDefault(fileName);
+        }
     }
 
-    async _fetchGH(fileName) {
-        try {
-            const url = `https://raw.githubusercontent.com/${this.OWNER}/${this.REPO}/${this.BRANCH}/${this.BASE_PATH}/${fileName}.json?t=${Date.now()}`;
-            const response = await fetch(url);
-            if (response.ok) return await response.json();
-        } catch (e) {}
-        return null;
+    async getProducts() { 
+        const data = await this.read('products'); 
+        return data?.products || []; 
+    }
+    
+    async getCategories() { 
+        const data = await this.read('categories'); 
+        return data?.categories || []; 
+    }
+    
+    async getSettings() { 
+        return await this.read('settings'); 
+    }
+    
+    async getOrders() { 
+        const data = await this.read('orders'); 
+        return data?.orders || []; 
     }
 
-    async getProducts() { const d = await this.read('products'); return d?.products || []; }
-    async getCategories() { const d = await this.read('categories'); return d?.categories || []; }
-    async getSettings() { return await this.read('settings'); }
-    async getOrders() { const d = await this.read('orders'); return d?.orders || []; }
-
-    // ==================== WRITE ====================
+    // ==================== WRITE TO GITHUB ====================
     async write(fileName, data) {
-        // همیشه اول localStorage
-        this._localSet(fileName, data);
-        this.cache[fileName] = { data, time: Date.now() };
-        
         const token = this._getToken();
         
         if (!token) {
-            console.warn('⚠️ No token - localStorage only');
-            return { success: false, message: 'توکن نیست - فقط در مرورگر ذخیره شد' };
+            console.error('❌ No GitHub token! Cannot save.');
+            return { success: false, message: '❌ توکن GitHub وارد نشده. نمی‌توان ذخیره کرد.' };
         }
 
         try {
             const apiUrl = `https://api.github.com/repos/${this.OWNER}/${this.REPO}/contents/${this.BASE_PATH}/${fileName}.json`;
-            console.log('📝 Writing to GitHub:', apiUrl);
+            console.log(`📝 Writing to: ${apiUrl}`);
             
-            // Get SHA
+            // Get current SHA (required for update)
             let sha = null;
             try {
                 const checkRes = await fetch(apiUrl, { headers: this._getHeaders() });
                 if (checkRes.ok) {
                     const fileInfo = await checkRes.json();
                     sha = fileInfo.sha;
-                    console.log('📄 File exists, SHA:', sha?.substring(0, 8));
+                    console.log(`📄 File exists, SHA: ${sha?.substring(0, 8)}`);
                 } else {
-                    console.log('📄 File does not exist, creating new');
+                    console.log('📄 Creating new file');
                 }
             } catch (e) {
-                console.log('📄 SHA check failed:', e.message);
+                console.log('📄 SHA check skipped:', e.message);
             }
 
+            // Prepare content
             const jsonStr = JSON.stringify(data, null, 2);
             const content = btoa(unescape(encodeURIComponent(jsonStr)));
             
             const body = {
-                message: '📝 Update ' + fileName + '.json - ' + new Date().toLocaleString('fa-IR'),
+                message: `📝 Update ${fileName}.json - ${new Date().toLocaleString('fa-IR')}`,
                 content: content,
                 branch: this.BRANCH
             };
             if (sha) body.sha = sha;
 
-            console.log('📤 Sending to GitHub...');
+            // Send to GitHub
             const response = await fetch(apiUrl, {
                 method: 'PUT',
                 headers: this._getHeaders(),
                 body: JSON.stringify(body)
             });
 
-            console.log('📡 Response status:', response.status);
-
+            console.log(`📡 Response: ${response.status}`);
+            
             if (response.ok) {
                 const result = await response.json();
-                console.log('✅ Successfully saved to GitHub!');
-                console.log('📝 Commit:', result.commit?.message);
-                console.log('🔗 URL:', result.content?.html_url);
+                console.log(`✅ ${fileName} saved to GitHub!`);
+                console.log(`📝 Commit: ${result.commit?.message}`);
+                
+                // Update cache
+                this.cache[fileName] = { data, time: Date.now() };
                 
                 return { 
                     success: true, 
                     message: '✅ در GitHub ذخیره شد',
-                    url: result.content?.html_url
+                    commit: result.commit?.html_url
                 };
             } else {
                 const error = await response.json();
@@ -130,85 +172,93 @@ class GitHubDB {
             }
             
         } catch (error) {
-            console.error('❌ GitHub write failed:', error.message);
+            console.error('❌ Write failed:', error.message);
             return { 
                 success: false, 
-                message: '❌ GitHub: ' + error.message + ' - فقط در مرورگر ذخیره شد'
+                message: '❌ ذخیره نشد: ' + error.message
             };
         }
     }
 
     async saveProducts(products) { 
+        console.log(`💾 Saving ${products.length} products to GitHub...`);
         const data = { version: '1.0', lastUpdated: new Date().toISOString(), products };
         return await this.write('products', data); 
     }
+    
     async saveCategories(categories) { 
+        console.log(`💾 Saving ${categories.length} categories to GitHub...`);
         const data = { version: '1.0', lastUpdated: new Date().toISOString(), categories };
         return await this.write('categories', data); 
     }
-    async saveSettings(settings) { return await this.write('settings', settings); }
+    
+    async saveSettings(settings) { 
+        console.log('💾 Saving settings to GitHub...');
+        return await this.write('settings', settings); 
+    }
+    
     async saveOrders(orders) { 
+        console.log(`💾 Saving ${orders.length} orders to GitHub...`);
         const data = { version: '1.0', orders };
         return await this.write('orders', data); 
     }
 
     // ==================== CRUD ====================
     async addProduct(p) { 
-        const prods = await this.getProducts(); 
-        prods.push(p); 
-        const result = await this.saveProducts(prods);
-        console.log('📦 addProduct result:', result);
-        return { product: p, result: result };
+        const products = await this.getProducts(); 
+        products.push(p); 
+        const result = await this.saveProducts(products);
+        return { product: p, result }; 
     }
     
     async updateProduct(id, updates) { 
-        const prods = await this.getProducts(); 
-        const i = prods.findIndex(x => x.id === id); 
-        if (i > -1) { 
-            prods[i] = { ...prods[i], ...updates, updatedAt: new Date().toISOString() }; 
-            const result = await this.saveProducts(prods);
-            return { product: prods[i], result: result };
+        const products = await this.getProducts(); 
+        const index = products.findIndex(p => p.id === id); 
+        if (index > -1) { 
+            products[index] = { ...products[index], ...updates, updatedAt: new Date().toISOString() }; 
+            const result = await this.saveProducts(products);
+            return { product: products[index], result }; 
         } 
         return null; 
     }
     
     async deleteProduct(id) { 
-        const prods = await this.getProducts(); 
-        const result = await this.saveProducts(prods.filter(p => p.id !== id)); 
-        return { success: true, result: result }; 
+        const products = await this.getProducts(); 
+        const result = await this.saveProducts(products.filter(p => p.id !== id)); 
+        return { result }; 
     }
     
     async toggleProductStatus(id) { 
-        const prods = await this.getProducts(); 
-        const p = prods.find(x => x.id === id); 
+        const products = await this.getProducts(); 
+        const p = products.find(x => x.id === id); 
         if (p) { 
             p.isActive = !p.isActive; 
             p.updatedAt = new Date().toISOString(); 
-            const result = await this.saveProducts(prods);
-            return { product: p, result: result }; 
+            const result = await this.saveProducts(products);
+            return { product: p, result }; 
         } 
         return null; 
     }
     
     async addCategory(c) { 
-        const cats = await this.getCategories(); 
-        cats.push(c); 
-        return await this.saveCategories(cats); 
+        const categories = await this.getCategories(); 
+        categories.push(c); 
+        return await this.saveCategories(categories); 
     }
     
     async updateCategory(id, updates) { 
-        const cats = await this.getCategories(); 
-        const i = cats.findIndex(x => x.id === id); 
-        if (i > -1) { 
-            cats[i] = { ...cats[i], ...updates }; 
-            return await this.saveCategories(cats); 
+        const categories = await this.getCategories(); 
+        const index = categories.findIndex(c => c.id === id); 
+        if (index > -1) { 
+            categories[index] = { ...categories[index], ...updates }; 
+            return await this.saveCategories(categories); 
         } 
         return null; 
     }
     
     async deleteCategory(id) { 
-        const cats = await this.getCategories(); 
-        return await this.saveCategories(cats.filter(c => c.id !== id)); 
+        const categories = await this.getCategories(); 
+        return await this.saveCategories(categories.filter(c => c.id !== id)); 
     }
     
     async addOrder(o) { 
@@ -217,24 +267,27 @@ class GitHubDB {
         return await this.saveOrders(orders); 
     }
 
-    // ==================== COMPATIBILITY ====================
+    // ==================== COMPATIBILITY (Same API as old storage.js) ====================
     async getAll(store) {
         switch (store) {
             case 'products': return await this.getProducts();
             case 'categories': return await this.getCategories();
             case 'orders': return await this.getOrders();
-            case 'users': return this._localGet('users') || [];
+            case 'users': return []; // Users not stored in GitHub
             default: return [];
         }
     }
-    async getById(store, id) { const items = await this.getAll(store); return items.find(i => i.id === id) || null; }
+    
+    async getById(store, id) { 
+        const items = await this.getAll(store); 
+        return items.find(i => i.id === id) || null; 
+    }
     
     async add(store, item) {
         switch (store) {
             case 'products': const r1 = await this.addProduct(item); return r1.product || item;
             case 'categories': return await this.addCategory(item);
             case 'orders': return await this.addOrder(item);
-            case 'users': { const u = this._localGet('users') || []; u.push(item); this._localSet('users', u); return item; }
             default: return item;
         }
     }
@@ -243,7 +296,6 @@ class GitHubDB {
         switch (store) {
             case 'products': const r2 = await this.updateProduct(item.id, item); return r2?.product || item;
             case 'categories': return await this.updateCategory(item.id, item);
-            case 'users': { const u = this._localGet('users') || []; const i = u.findIndex(x => x.id === item.id); if (i > -1) u[i] = item; this._localSet('users', u); return item; }
             default: return item;
         }
     }
@@ -252,78 +304,137 @@ class GitHubDB {
         switch (store) {
             case 'products': return await this.deleteProduct(id);
             case 'categories': return await this.deleteCategory(id);
-            case 'users': { this._localSet('users', (this._localGet('users') || []).filter(u => u.id !== id)); return true; }
             default: return true;
         }
     }
     
-    async getByIndex(store, field, val) { const items = await this.getAll(store); return items.filter(i => i[field] === val); }
-    async count(store) { return (await this.getAll(store)).length; }
-    async getOrdersByDateRange(start, end) { const orders = await this.getOrders(); return orders.filter(o => { const d = new Date(o.createdAt); return d >= new Date(start) && d <= new Date(end); }); }
+    async getByIndex(store, field, val) { 
+        const items = await this.getAll(store); 
+        return items.filter(i => i[field] === val); 
+    }
+    
+    async count(store) { 
+        return (await this.getAll(store)).length; 
+    }
+    
+    async getOrdersByDateRange(start, end) { 
+        const orders = await this.getOrders(); 
+        return orders.filter(o => { 
+            const d = new Date(o.createdAt); 
+            return d >= new Date(start) && d <= new Date(end); 
+        }); 
+    }
+    
     async clearStore(store) {
         switch (store) {
             case 'products': await this.saveProducts([]); break;
             case 'categories': await this.saveCategories([]); break;
             case 'orders': await this.saveOrders([]); break;
-            case 'users': this._localSet('users', []); break;
         }
         return true;
     }
 
-    // ==================== LOCAL ====================
-    _localSet(key, data) { try { localStorage.setItem('ara_' + key, JSON.stringify(data)); } catch (e) {} }
-    _localGet(key) { try { const r = localStorage.getItem('ara_' + key); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+    // ==================== DEFAULTS ====================
     _getDefault(fileName) {
         if (fileName === 'products') return { products: [] };
         if (fileName === 'categories') return { categories: [] };
         if (fileName === 'orders') return { orders: [] };
-        if (fileName === 'settings') return { cafeName: 'ARA Coffee', currency: 'تومان', taxRate: 9, theme: 'light' };
+        if (fileName === 'settings') return { 
+            cafeName: 'ARA Coffee', 
+            currency: 'تومان', 
+            taxRate: 9, 
+            printerType: '58mm', 
+            theme: 'light' 
+        };
         return {};
     }
 
+    // ==================== TEST CONNECTION ====================
     async testConnection() {
         const token = this._getToken();
-        if (!token) return { success: false, message: '❌ توکن وارد نشده' };
+        
+        console.log('🔍 Testing GitHub connection...');
+        console.log('👤 Owner:', this.OWNER);
+        console.log('📁 Repo:', this.REPO);
+        console.log('🔑 Token:', token ? token.substring(0, 12) + '...' : 'MISSING');
+        
+        if (!token) {
+            return { success: false, message: '❌ توکن وارد نشده است' };
+        }
+
         try {
-            const res = await fetch(`https://api.github.com/repos/${this.OWNER}/${this.REPO}`, { headers: this._getHeaders() });
-            if (res.ok) {
-                const d = await res.json();
-                return { success: true, repo: d.full_name, message: '✅ متصل به ' + d.full_name };
+            const url = `https://api.github.com/repos/${this.OWNER}/${this.REPO}`;
+            const response = await fetch(url, { headers: this._getHeaders() });
+            
+            console.log('📡 Status:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                return { 
+                    success: true, 
+                    repo: data.full_name,
+                    message: '✅ متصل به ' + data.full_name 
+                };
             }
-            if (res.status === 401) return { success: false, message: '❌ توکن نامعتبر' };
-            if (res.status === 404) return { success: false, message: '❌ مخزن یافت نشد' };
-            return { success: false, message: '❌ خطای ' + res.status };
-        } catch (e) {
-            return { success: false, message: '❌ ' + e.message };
+            
+            if (response.status === 401) {
+                return { success: false, message: '❌ توکن نامعتبر است' };
+            }
+            
+            if (response.status === 404) {
+                return { success: false, message: '❌ مخزن یافت نشد: ' + this.OWNER + '/' + this.REPO };
+            }
+            
+            return { success: false, message: '❌ خطای ' + response.status };
+            
+        } catch (error) {
+            return { success: false, message: '❌ ' + error.message };
         }
     }
 
-    clearCache() { this.cache = {}; }
+    clearCache() { 
+        this.cache = {}; 
+        console.log('🗑️ Cache cleared');
+    }
 }
 
+// ==================== INSTANCE ====================
 const DB = new GitHubDB();
 
+// ==================== SettingsManager (Only for GitHub config) ====================
 const SettingsManager = {
     get(key, def) {
-        try { const v = localStorage.getItem('ara_' + key); return v === null ? (def !== undefined ? def : null) : JSON.parse(v); } catch (e) { return def !== undefined ? def : null; }
+        // Only return GitHub config from localStorage
+        const ghKeys = ['github_owner', 'github_repo', 'github_branch', 'github_token', 'theme'];
+        if (ghKeys.includes(key)) {
+            try {
+                const v = localStorage.getItem('ara_' + key);
+                return v !== null ? JSON.parse(v) : (def !== undefined ? def : null);
+            } catch (e) { return def !== undefined ? def : null; }
+        }
+        return def !== undefined ? def : null;
     },
-    set(key, val) { try { localStorage.setItem('ara_' + key, JSON.stringify(val)); } catch (e) {} },
+    set(key, val) {
+        // Only save GitHub config to localStorage
+        const ghKeys = ['github_owner', 'github_repo', 'github_branch', 'github_token', 'theme'];
+        if (ghKeys.includes(key)) {
+            try { localStorage.setItem('ara_' + key, JSON.stringify(val)); } catch (e) {}
+        }
+    },
     getAll() {
         const s = {};
+        const ghKeys = ['github_owner', 'github_repo', 'github_branch', 'github_token', 'theme'];
         for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i);
-            if (k?.startsWith('ara_')) try { s[k.replace('ara_', '')] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+            if (k?.startsWith('ara_') && ghKeys.some(gk => k === 'ara_' + gk)) {
+                try { s[k.replace('ara_', '')] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+            }
         }
         return s;
     },
     remove(key) { localStorage.removeItem('ara_' + key); }
 };
 
-['cafeName','currency','taxRate','theme'].forEach(k => {
-    if (SettingsManager.get(k) === null) {
-        const defaults = { cafeName: 'ARA Coffee', currency: 'تومان', taxRate: 9, theme: 'light' };
-        SettingsManager.set(k, defaults[k]);
-    }
-});
-
-console.log('✅ GitHubDB Ready');
+console.log('✅ GitHubDB v5.0 Ready - Pure GitHub Mode');
+console.log('📌 Data is stored ONLY on GitHub');
+console.log('🔑 Only GitHub config is in localStorage');
