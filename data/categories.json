@@ -1,62 +1,30 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-07T20:25:13.573Z",
+  "lastUpdated": "2026-06-08T00:00:00Z",
   "categories": [
     {
-      "id": "cat-1",
+      "id": "cat-default-0",
       "name": "نوشیدنی گرم",
       "icon": "☕",
       "isDefault": true,
-      "displayOrder": 0
+      "displayOrder": 0,
+      "createdAt": "2026-06-08T00:00:00Z"
     },
     {
-      "id": "cat-2",
-      "name": "قهوه گرم",
-      "icon": "🫖",
-      "isDefault": true,
-      "displayOrder": 1
-    },
-    {
-      "id": "cat-3",
+      "id": "cat-default-1",
       "name": "نوشیدنی سرد",
       "icon": "🧊",
       "isDefault": true,
-      "displayOrder": 2
+      "displayOrder": 1,
+      "createdAt": "2026-06-08T00:00:00Z"
     },
     {
-      "id": "cat-4",
+      "id": "cat-default-2",
       "name": "چای و دمنوش",
       "icon": "🍵",
       "isDefault": true,
-      "displayOrder": 3
-    },
-    {
-      "id": "cat-5",
-      "name": "مچا",
-      "icon": "🍃",
-      "isDefault": true,
-      "displayOrder": 4
-    },
-    {
-      "id": "cat-6",
-      "name": "نوشیدنی سرد",
-      "icon": "🥤",
-      "isDefault": true,
-      "displayOrder": 5
-    },
-    {
-      "id": "cat-7",
-      "name": "دسر",
-      "icon": "🍰",
-      "isDefault": true,
-      "displayOrder": 6
-    },
-    {
-      "id": "cat-8",
-      "name": "شیرینی",
-      "icon": "🥐",
-      "isDefault": true,
-      "displayOrder": 7
+      "displayOrder": 2,
+      "createdAt": "2026-06-08T00:00:00Z"
     }
   ]
 }
