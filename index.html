@@ -17,6 +17,7 @@
     <div class="side-nav-overlay" id="side-nav-overlay"></div>
 
     <div class="app-container">
+        <!-- Header -->
         <header class="app-header">
             <div class="header-left">
                 <button class="icon-btn" id="menu-toggle" aria-label="منو" title="منو">
@@ -50,37 +51,86 @@
             </div>
         </header>
 
+        <!-- Main Content -->
         <main class="pos-main">
+            <!-- Products Section -->
             <section class="products-section">
                 <div class="category-tabs-container">
                     <div class="category-tabs" id="category-tabs"></div>
                 </div>
                 <div class="products-grid" id="product-grid"></div>
             </section>
+
+            <!-- Cart Section -->
             <aside class="cart-section">
                 <div class="cart-header">
                     <h2>🛒 سبد خرید</h2>
                     <button class="text-btn" id="clear-cart-btn">🗑️ خالی کردن</button>
                 </div>
+                
                 <div class="cart-items" id="cart-items">
                     <p class="empty-cart">سبد خرید خالی است</p>
                 </div>
+                
                 <div class="cart-footer">
                     <div class="cart-summary">
-                        <div class="summary-row"><span>جمع اقلام:</span><span id="subtotal-amount">۰ تومان</span></div>
-                        <div class="summary-row"><span>مالیات:</span><span id="tax-amount">۰ تومان</span></div>
-                        <div class="summary-row"><span>تخفیف:</span><span id="discount-amount">۰ تومان</span></div>
-                        <div class="summary-row total-row"><span>💰 مبلغ قابل پرداخت:</span><span id="total-amount">۰ تومان</span></div>
+                        <div class="summary-row">
+                            <span>💰 جمع اقلام (قیمت اصلی):</span>
+                            <span id="subtotal-amount">۰ تومان</span>
+                        </div>
+                        <div class="summary-row" style="color:#e74c3c;">
+                            <span>🏷️ تخفیف:</span>
+                            <span id="discount-amount">۰ تومان</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>🧾 مالیات:</span>
+                            <span id="tax-amount">۰ تومان</span>
+                        </div>
+                        <div class="summary-row total-row">
+                            <span>💳 مبلغ قابل پرداخت:</span>
+                            <span id="total-amount">۰ تومان</span>
+                        </div>
                     </div>
+
+                    <!-- Discount Section -->
+                    <div class="discount-section" style="margin:12px 0;padding:10px;background:rgba(231,76,60,0.05);border-radius:8px;border:1px dashed #e74c3c;">
+                        <p style="font-size:0.8rem;font-weight:600;color:#e74c3c;margin-bottom:8px;">🏷️ اعمال تخفیف</p>
+                        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+                            <input type="number" id="discount-percent" placeholder="%" min="0" max="100" 
+                                   style="width:55px;padding:6px;border:1px solid #ddd;border-radius:6px;text-align:center;font-size:0.85rem;">
+                            <span style="font-size:0.85rem;">درصد</span>
+                            <button class="btn-sm" id="apply-discount-percent" style="padding:6px 10px;background:#e74c3c;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.75rem;">اعمال</button>
+                        </div>
+                        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+                            <input type="number" id="discount-amount-input" placeholder="تومان" min="0"
+                                   style="width:70px;padding:6px;border:1px solid #ddd;border-radius:6px;text-align:center;font-size:0.85rem;">
+                            <span style="font-size:0.85rem;">مبلغ</span>
+                            <button class="btn-sm" id="apply-discount-amount" style="padding:6px 10px;background:#e74c3c;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.75rem;">اعمال</button>
+                        </div>
+                        <button class="btn-sm" id="remove-discount" style="width:100%;padding:6px;background:#888;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.75rem;">✕ حذف تخفیف</button>
+                    </div>
+
+                    <!-- Payment Method -->
                     <div class="payment-methods">
-                        <label class="radio-label"><input type="radio" name="payment-method" value="Cash" checked><span>💵 نقدی</span></label>
-                        <label class="radio-label"><input type="radio" name="payment-method" value="Card"><span>💳 کارت</span></label>
+                        <label class="radio-label">
+                            <input type="radio" name="payment-method" value="Cash" checked>
+                            <span>💵 نقدی</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="payment-method" value="Card">
+                            <span>💳 کارت</span>
+                        </label>
                     </div>
-                    <button class="btn-primary btn-block" id="checkout-btn">💳 پرداخت و ثبت سفارش (F8)</button>
+                    
+                    <!-- Checkout Button -->
+                    <button class="btn-primary btn-block" id="checkout-btn">
+                        💳 پرداخت و ثبت سفارش (F8)
+                    </button>
                 </div>
             </aside>
         </main>
 
+        <!-- Side Navigation -->
         <nav class="side-nav" id="side-nav">
             <div class="nav-header">
                 <img src="/assets/images/logo-placeholder.png" alt="ARA Coffee" class="nav-logo"
@@ -94,6 +144,7 @@
                 <li><a href="/admin.html" class="nav-link"><span>⚙️</span> مدیریت محصولات</a></li>
                 <li><a href="/reports.html" class="nav-link"><span>📊</span> گزارشات</a></li>
                 <li><a href="/settings.html" class="nav-link"><span>🔧</span> تنظیمات</a></li>
+                <li><a href="/menu.html" class="nav-link" target="_blank"><span>🍽️</span> منوی کافه</a></li>
             </ul>
             <div class="nav-footer">
                 <p class="version">نسخه 1.0.0</p>
@@ -102,9 +153,12 @@
         </nav>
     </div>
 
+    <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="/js/github-db.js"></script>   <script src="/js/models.js"></script>
+    <!-- Scripts -->
+    <script src="/js/github-db.js"></script>
+    <script src="/js/models.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/cart.js"></script>
