@@ -1,5 +1,5 @@
-// products.js - Product & Category Management
-// Version: 3.0 - 3 Default Categories + Drag & Drop + Delete Category
+// products.js - Product & Category Management (Complete)
+// Version: 4.0 - With Image Upload to GitHub + Drag & Drop + Delete Category
 
 // ==================== PRODUCT MANAGER ====================
 class ProductManager {
@@ -363,7 +363,8 @@ class AdminPanel {
                     </div>
                     <img src="${product.image || '/assets/images/logo-placeholder.png'}" 
                          alt="${product.name}"
-                         onerror="this.style.display='none'">
+                         onerror="this.src='/assets/images/logo-placeholder.png'"
+                         style="width:90px;height:90px;border-radius:8px;object-fit:cover;background:var(--bg-secondary);flex-shrink:0;">
                     <div class="product-info-admin">
                         <h3>${product.name}</h3>
                         <div class="product-price">💰 ${UI.formatCurrency(product.price)}</div>
@@ -466,8 +467,6 @@ class AdminPanel {
             e.preventDefault();
             
             const targetCard = e.target.closest('.product-card-admin');
-            
-            // Remove all drag-over
             container.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
 
             if (!targetCard || !draggedItem || draggedItem === targetCard) {
@@ -484,14 +483,12 @@ class AdminPanel {
 
             if (draggedIndex === -1 || targetIndex === -1) return;
 
-            // Reorder in DOM
             if (draggedIndex < targetIndex) {
                 container.insertBefore(draggedItem, targetCard.nextSibling);
             } else {
                 container.insertBefore(draggedItem, targetCard);
             }
 
-            // Update displayOrder
             const newCards = [...container.querySelectorAll('.product-card-admin')];
             const updates = newCards.map((card, index) => ({
                 id: card.dataset.productId,
@@ -655,9 +652,21 @@ class AdminPanel {
 
         try {
             const imageFile = document.getElementById('product-image').files[0];
+            
             if (imageFile) {
-                productData.image = await this.fileToBase64(imageFile);
+                // عکس‌های کوچک (< 100KB) رو Base64 ذخیره کن
+                if (imageFile.size < 100 * 1024) {
+                    productData.image = await this.fileToBase64(imageFile);
+                    console.log('📷 Small image stored as Base64');
+                } else {
+                    // عکس‌های بزرگ رو توی GitHub آپلود کن
+                    UI.showToast('info', '⏳ در حال آپلود عکس در GitHub...');
+                    const imageUrl = await this.uploadImageToGitHub(imageFile);
+                    productData.image = imageUrl;
+                    console.log('📷 Large image uploaded to GitHub:', imageUrl);
+                }
             } else if (productId) {
+                // حفظ عکس قبلی
                 const existing = await DB.getById('products', productId);
                 if (existing && existing.image) {
                     productData.image = existing.image;
@@ -674,6 +683,61 @@ class AdminPanel {
             await this.loadProducts();
         } catch (error) {
             UI.showToast('error', '❌ ' + error.message);
+        }
+    }
+
+    // ==================== UPLOAD IMAGE TO GITHUB ====================
+    static async uploadImageToGitHub(imageFile) {
+        const token = localStorage.getItem('ara_github_token');
+        const owner = localStorage.getItem('ara_github_owner') || 'alikarami28';
+        const repo = localStorage.getItem('ara_github_repo') || 'ARA-Coffee-POS';
+        const branch = localStorage.getItem('ara_github_branch') || 'main';
+        
+        if (!token) {
+            console.warn('⚠️ No GitHub token, using Base64');
+            return await this.fileToBase64(imageFile);
+        }
+
+        try {
+            const base64 = await this.fileToBase64(imageFile);
+            const content = base64.split(',')[1]; // Remove data:image/... prefix
+            
+            const ext = imageFile.name.split('.').pop() || 'jpg';
+            const fileName = 'product-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5) + '.' + ext;
+            const path = 'assets/images/products/' + fileName;
+            
+            const apiUrl = 'https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + path;
+            
+            const body = {
+                message: '📷 Upload product image: ' + fileName,
+                content: content,
+                branch: branch
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                const rawUrl = 'https://raw.githubusercontent.com/' + owner + '/' + repo + '/' + branch + '/assets/images/products/' + fileName;
+                console.log('✅ Image uploaded to GitHub:', rawUrl);
+                UI.showToast('success', '✅ عکس در GitHub ذخیره شد');
+                return rawUrl;
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || 'Upload failed');
+            }
+        } catch (error) {
+            console.error('❌ Image upload failed:', error.message);
+            UI.showToast('warning', '⚠️ آپلود عکس ناموفق - به صورت فشرده ذخیره شد');
+            return await this.fileToBase64(imageFile);
         }
     }
 
@@ -837,7 +901,7 @@ class AdminPanel {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
+            reader.onerror = (error) => reject(error);
             reader.readAsDataURL(file);
         });
     }
