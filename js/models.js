@@ -26,7 +26,7 @@ class Category {
 }
 
 class Order {
-    constructor({ items, subtotal, taxRate = 9, taxAmount = 0, discountPercent = 0, discountAmount = 0, finalAmount, cashierId = 'system', paymentMethod = 'Cash' }) {
+    constructor({ items, subtotal, taxRate = 10, taxAmount = 0, discountPercent = 0, discountAmount = 0, finalAmount, cashierId = 'system', paymentMethod = 'Cash' }) {
         this.id = 'ord-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
         this.invoiceNumber = this._generateInvoiceNumber();
         this.items = items.map(item => ({
@@ -51,9 +51,9 @@ class Order {
 
     _generateInvoiceNumber() {
         const now = new Date();
-        const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`;
-        const timeStr = `${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}`;
-        const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-        return `ARA-${dateStr}-${timeStr}-${rand}`;
+        const d = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`;
+        const t = `${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}`;
+        const r = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        return `ARA-${d}-${t}-${r}`;
     }
 }
