@@ -1,11 +1,11 @@
-// cart.js - Shopping Cart with Discount
+// cart.js - Shopping Cart (Discount from Settings)
 class ShoppingCart {
     constructor() {
         this.items = new Map();
         this.listeners = [];
-        this.discountPercent = 0; // درصد تخفیف
-        this.discountAmount = 0;   // مبلغ تخفیف (تومان)
-        this.discountType = 'percent'; // 'percent' یا 'amount'
+        this.manualDiscountPercent = null; // تخفیف دستی (موقت)
+        this.manualDiscountAmount = null;
+        this.manualDiscountType = null;
     }
 
     addItem(product) {
@@ -51,64 +51,94 @@ class ShoppingCart {
 
     clearCart() {
         this.items.clear();
-        this.discountPercent = 0;
-        this.discountAmount = 0;
-        this.discountType = 'percent';
+        this.manualDiscountPercent = null;
+        this.manualDiscountAmount = null;
+        this.manualDiscountType = null;
         this._notify('change', this.getCartSummary());
     }
 
     // ==================== تخفیف ====================
     
+    // تخفیف دستی (از صفحه POS)
     setDiscountPercent(percent) {
-        this.discountPercent = Math.max(0, Math.min(100, parseFloat(percent) || 0));
-        this.discountType = 'percent';
-        this.discountAmount = 0;
+        this.manualDiscountPercent = Math.max(0, Math.min(100, parseFloat(percent) || 0));
+        this.manualDiscountType = 'percent';
+        this.manualDiscountAmount = null;
         this._notify('change', this.getCartSummary());
     }
 
     setDiscountAmount(amount) {
-        this.discountAmount = Math.max(0, parseFloat(amount) || 0);
-        this.discountType = 'amount';
-        this.discountPercent = 0;
+        this.manualDiscountAmount = Math.max(0, parseFloat(amount) || 0);
+        this.manualDiscountType = 'amount';
+        this.manualDiscountPercent = null;
+        this._notify('change', this.getCartSummary());
+    }
+
+    removeManualDiscount() {
+        this.manualDiscountPercent = null;
+        this.manualDiscountAmount = null;
+        this.manualDiscountType = null;
         this._notify('change', this.getCartSummary());
     }
 
     removeDiscount() {
-        this.discountPercent = 0;
-        this.discountAmount = 0;
-        this._notify('change', this.getCartSummary());
+        this.removeManualDiscount();
     }
 
-    getDiscountInfo() {
-        return {
-            type: this.discountType,
-            percent: this.discountPercent,
-            amount: this.discountAmount
-        };
+    // گرفتن درصد تخفیف نهایی (تنظیمات + دستی)
+    _getEffectiveDiscountPercent() {
+        // اولویت با تخفیف دستی
+        if (this.manualDiscountType === 'percent' && this.manualDiscountPercent !== null) {
+            return this.manualDiscountPercent;
+        }
+        // بعد تخفیف تنظیمات
+        try {
+            const saved = localStorage.getItem('ara_discountPercent');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return parseFloat(parsed) || 0;
+            }
+        } catch (e) {}
+        return 0;
+    }
+
+    _getEffectiveDiscountAmount() {
+        if (this.manualDiscountType === 'amount' && this.manualDiscountAmount !== null) {
+            return this.manualDiscountAmount;
+        }
+        return 0;
+    }
+
+    _isDiscountActive() {
+        return this._getEffectiveDiscountPercent() > 0 || this._getEffectiveDiscountAmount() > 0;
     }
 
     // ==================== محاسبات ====================
     
     getCartSummary() {
-        let subtotalOriginal = 0; // قیمت اصلی (قبل از تخفیف)
-        let subtotalAfterDiscount = 0; // قیمت بعد از تخفیف
+        let subtotalOriginal = 0;
+        let subtotalAfterDiscount = 0;
         const itemsList = [];
 
         for (const [id, item] of this.items) {
             const originalPrice = item.product.price;
             const originalTotal = originalPrice * item.quantity;
             
-            // محاسبه قیمت بعد از تخفیف
             let discountedPrice = originalPrice;
-            if (this.discountType === 'percent') {
-                discountedPrice = originalPrice * (1 - this.discountPercent / 100);
-            } else if (this.discountType === 'amount') {
-                // تخفیف مبلغی به نسبت کل
+            
+            if (this.manualDiscountType === 'percent' && this.manualDiscountPercent !== null) {
+                discountedPrice = originalPrice * (1 - this.manualDiscountPercent / 100);
+            } else if (this.manualDiscountType === 'amount' && this.manualDiscountAmount !== null) {
                 const totalOriginal = this._getTotalOriginal();
                 if (totalOriginal > 0) {
                     const ratio = originalTotal / totalOriginal;
-                    const discountForItem = this.discountAmount * ratio;
+                    const discountForItem = this.manualDiscountAmount * ratio;
                     discountedPrice = (originalTotal - discountForItem) / item.quantity;
+                }
+            } else {
+                const settingDiscount = this._getEffectiveDiscountPercent();
+                if (settingDiscount > 0) {
+                    discountedPrice = originalPrice * (1 - settingDiscount / 100);
                 }
             }
             
@@ -128,22 +158,18 @@ class ShoppingCart {
             });
         }
 
-        // خواندن مالیات
-        let taxRate = 9;
+        // خواندن مالیات (پیش‌فرض ۱۰٪)
+        let taxRate = 10;
         try {
             const saved = localStorage.getItem('ara_taxRate');
             if (saved) {
-                taxRate = parseFloat(JSON.parse(saved)) || 9;
+                taxRate = parseFloat(JSON.parse(saved)) || 10;
             }
         } catch (e) {}
 
-        // مالیات روی قیمت اصلی محاسبه میشه
+        // مالیات روی قیمت اصلی
         const taxAmount = Math.round((subtotalOriginal * taxRate) / 100);
-        
-        // مبلغ تخفیف کل
         const discountAmount = subtotalOriginal - subtotalAfterDiscount;
-        
-        // مبلغ نهایی = (قیمت اصلی - تخفیف) + مالیات
         const finalAmount = subtotalAfterDiscount + taxAmount;
 
         return {
@@ -153,9 +179,8 @@ class ShoppingCart {
             totalItems: itemsList.reduce((sum, i) => sum + i.quantity, 0),
             taxRate: taxRate,
             taxAmount: taxAmount,
-            discountPercent: this.discountPercent,
+            discountPercent: this._isDiscountActive() ? (this.manualDiscountPercent || this._getEffectiveDiscountPercent()) : 0,
             discountAmount: discountAmount,
-            discountType: this.discountType,
             finalAmount: finalAmount
         };
     }
@@ -168,11 +193,18 @@ class ShoppingCart {
         return total;
     }
 
+    getDiscountInfo() {
+        return {
+            settingPercent: this._getEffectiveDiscountPercent(),
+            manualPercent: this.manualDiscountPercent,
+            manualAmount: this.manualDiscountAmount,
+            isActive: this._isDiscountActive()
+        };
+    }
+
     async checkout(paymentMethod = 'Cash') {
         const summary = this.getCartSummary();
-        if (summary.totalItems === 0) {
-            throw new Error('سبد خرید خالی است');
-        }
+        if (summary.totalItems === 0) throw new Error('سبد خرید خالی است');
 
         const currentUser = typeof AuthManager !== 'undefined' ? AuthManager.getCurrentUser() : null;
         
@@ -191,11 +223,7 @@ class ShoppingCart {
         const newOrder = new Order(orderData);
         
         if (typeof DB !== 'undefined') {
-            try {
-                await DB.addOrder(newOrder);
-            } catch (e) {
-                console.warn('Could not save order:', e);
-            }
+            try { await DB.addOrder(newOrder); } catch (e) {}
         }
         
         this.clearCart();
@@ -203,13 +231,8 @@ class ShoppingCart {
         return newOrder;
     }
 
-    onChange(callback) {
-        this.listeners.push(callback);
-    }
-
-    _notify(event, data) {
-        this.listeners.forEach(cb => cb(event, data));
-    }
+    onChange(callback) { this.listeners.push(callback); }
+    _notify(event, data) { this.listeners.forEach(cb => cb(event, data)); }
 }
 
 const Cart = new ShoppingCart();
