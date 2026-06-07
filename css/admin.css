@@ -590,3 +590,81 @@ select.form-input {
         font-size: 0.9rem;
     }
 }
+/* ==========================================
+   Drag & Drop Styles
+   ========================================== */
+
+/* دسته کشیدن */
+.drag-handle {
+    cursor: grab;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.drag-handle:hover {
+    background: rgba(139, 69, 19, 0.1);
+    color: var(--color-primary);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.product-card-admin {
+    cursor: default;
+    transition: all 0.3s ease;
+}
+
+.product-card-admin[draggable="true"] {
+    cursor: default;
+}
+
+.product-card-admin.dragging {
+    opacity: 0.5;
+    border: 2px dashed var(--color-primary);
+}
+
+.product-card-admin.drag-over {
+    border: 2px solid var(--color-primary);
+    background: rgba(139, 69, 19, 0.05);
+    transform: scale(1.02);
+}
+
+/* دکمه‌های ترتیب */
+.btn-order {
+    padding: 4px 10px;
+    font-size: 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-order:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.btn-order:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* انیمیشن جابجایی */
+@keyframes slideIn {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.product-card-admin {
+    animation: slideIn 0.3s ease;
+}
