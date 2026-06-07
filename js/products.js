@@ -1,9 +1,19 @@
 // products.js - Product & Category Management (GitHub Version)
+// Version: 2.0 - Complete
+
+// ==================== PRODUCT MANAGER ====================
 class ProductManager {
     static async addProduct(productData) {
-        if (!productData.name?.trim()) throw new Error('نام محصول الزامی است');
-        if (!productData.categoryId) throw new Error('دسته‌بندی را انتخاب کنید');
-        if (!productData.price || isNaN(productData.price) || productData.price < 0) throw new Error('قیمت نامعتبر است');
+        // اعتبارسنجی
+        if (!productData.name || !productData.name.trim()) {
+            throw new Error('نام محصول الزامی است');
+        }
+        if (!productData.categoryId) {
+            throw new Error('دسته‌بندی را انتخاب کنید');
+        }
+        if (!productData.price || isNaN(productData.price) || productData.price < 0) {
+            throw new Error('قیمت نامعتبر است');
+        }
 
         const product = {
             id: 'prod-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
@@ -19,86 +29,151 @@ class ProductManager {
         };
 
         const result = await DB.addProduct(product);
-        if (result.success !== false) {
+        
+        // نتیجه ذخیره‌سازی رو چک کن
+        if (result && result.result && result.result.success) {
             UI.showToast('success', '✅ محصول در GitHub ذخیره شد');
+        } else if (result && result.result && !result.result.success) {
+            UI.showToast('warning', '⚠️ ' + (result.result.message || 'فقط در مرورگر ذخیره شد'));
         } else {
-            UI.showToast('warning', '⚠️ محصول فقط در حافظه محلی ذخیره شد');
+            UI.showToast('success', '✅ محصول اضافه شد');
         }
+        
         return product;
     }
 
     static async updateProduct(productId, updates) {
         const result = await DB.updateProduct(productId, updates);
+        
         if (result) {
-            UI.showToast('success', '✅ محصول بروزرسانی شد');
+            if (result.result && result.result.success) {
+                UI.showToast('success', '✅ محصول در GitHub بروزرسانی شد');
+            } else if (result.result && !result.result.success) {
+                UI.showToast('warning', '⚠️ ' + (result.result.message || 'فقط در مرورگر ذخیره شد'));
+            } else {
+                UI.showToast('success', '✅ محصول بروزرسانی شد');
+            }
+            return result.product || result;
         } else {
             UI.showToast('error', '❌ محصول یافت نشد');
+            return null;
         }
-        return result;
     }
 
     static async deleteProduct(productId) {
-        await DB.deleteProduct(productId);
-        UI.showToast('success', '🗑️ محصول حذف شد');
+        const result = await DB.deleteProduct(productId);
+        
+        if (result && result.result && result.result.success) {
+            UI.showToast('success', '🗑️ محصول از GitHub حذف شد');
+        } else {
+            UI.showToast('success', '🗑️ محصول حذف شد');
+        }
+        
         return true;
     }
 
     static async toggleProductStatus(productId) {
-        const product = await DB.toggleProductStatus(productId);
-        if (product) {
-            UI.showToast('info', `محصول "${product.name}" ${product.isActive ? 'فعال' : 'غیرفعال'} شد`);
+        const result = await DB.toggleProductStatus(productId);
+        
+        if (result && result.product) {
+            const status = result.product.isActive ? 'فعال' : 'غیرفعال';
+            UI.showToast('info', `محصول "${result.product.name}" ${status} شد`);
+            return result.product;
         }
-        return product;
+        
+        return null;
     }
 }
 
+// ==================== CATEGORY MANAGER ====================
 class CategoryManager {
     static async addCategory(name, icon = '📂') {
-        if (!name?.trim()) throw new Error('نام دسته‌بندی الزامی است');
-        
+        if (!name || !name.trim()) {
+            throw new Error('نام دسته‌بندی الزامی است');
+        }
+
+        const categories = await DB.getCategories();
         const category = {
             id: 'cat-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
             name: name.trim(),
             icon: icon,
             isDefault: false,
-            displayOrder: (await DB.getCategories()).length,
+            displayOrder: categories.length,
             createdAt: new Date().toISOString()
         };
 
-        await DB.addCategory(category);
-        UI.showToast('success', '✅ دسته‌بندی اضافه شد');
+        const result = await DB.addCategory(category);
+        
+        if (result && result.success) {
+            UI.showToast('success', '✅ دسته‌بندی در GitHub اضافه شد');
+        } else {
+            UI.showToast('success', '✅ دسته‌بندی اضافه شد');
+        }
+        
         return category;
     }
 
     static async updateCategory(categoryId, updates) {
-        await DB.updateCategory(categoryId, updates);
-        UI.showToast('success', '✅ دسته‌بندی بروزرسانی شد');
+        const result = await DB.updateCategory(categoryId, updates);
+        
+        if (result && result.success) {
+            UI.showToast('success', '✅ دسته‌بندی در GitHub بروزرسانی شد');
+        } else {
+            UI.showToast('success', '✅ دسته‌بندی بروزرسانی شد');
+        }
     }
 
     static async deleteCategory(categoryId) {
-        const category = (await DB.getCategories()).find(c => c.id === categoryId);
-        if (category?.isDefault) throw new Error('دسته‌بندی پیش‌فرض قابل حذف نیست');
+        // چک کن دسته‌بندی پیش‌فرض نباشه
+        const categories = await DB.getCategories();
+        const category = categories.find(c => c.id === categoryId);
         
-        const products = (await DB.getProducts()).filter(p => p.categoryId === categoryId);
-        if (products.length > 0) throw new Error(`این دسته ${products.length} محصول دارد`);
+        if (!category) {
+            throw new Error('دسته‌بندی یافت نشد');
+        }
         
-        await DB.deleteCategory(categoryId);
-        UI.showToast('success', '🗑️ دسته‌بندی حذف شد');
+        if (category.isDefault) {
+            throw new Error('دسته‌بندی‌های پیش‌فرض قابل حذف نیستند');
+        }
+
+        // چک کن محصولی توش نباشه
+        const products = await DB.getProducts();
+        const productsInCategory = products.filter(p => p.categoryId === categoryId);
+        
+        if (productsInCategory.length > 0) {
+            throw new Error(`این دسته‌بندی ${productsInCategory.length} محصول دارد و قابل حذف نیست`);
+        }
+
+        const result = await DB.deleteCategory(categoryId);
+        
+        if (result && result.success) {
+            UI.showToast('success', '🗑️ دسته‌بندی از GitHub حذف شد');
+        } else {
+            UI.showToast('success', '🗑️ دسته‌بندی حذف شد');
+        }
+        
+        return true;
+    }
+
+    static async getDefaultCategories() {
+        return [
+            { name: 'اسپرسو', icon: '☕' },
+            { name: 'قهوه گرم', icon: '🫖' },
+            { name: 'قهوه سرد', icon: '🧊' },
+            { name: 'چای', icon: '🍵' },
+            { name: 'مچا', icon: '🍃' },
+            { name: 'نوشیدنی سرد', icon: '🥤' },
+            { name: 'دسر', icon: '🍰' },
+            { name: 'شیرینی', icon: '🥐' }
+        ];
     }
 
     static async ensureDefaults() {
         const categories = await DB.getCategories();
+        
         if (categories.length === 0) {
-            const defaults = [
-                { name: 'اسپرسو', icon: '☕' },
-                { name: 'قهوه گرم', icon: '🫖' },
-                { name: 'قهوه سرد', icon: '🧊' },
-                { name: 'چای', icon: '🍵' },
-                { name: 'مچا', icon: '🍃' },
-                { name: 'نوشیدنی سرد', icon: '🥤' },
-                { name: 'دسر', icon: '🍰' },
-                { name: 'شیرینی', icon: '🥐' }
-            ];
+            console.log('📂 Creating default categories...');
+            const defaults = await this.getDefaultCategories();
             
             const newCategories = defaults.map((d, i) => ({
                 id: 'cat-default-' + i,
@@ -115,49 +190,78 @@ class CategoryManager {
     }
 }
 
-// ==================== Admin Panel ====================
+// ==================== ADMIN PANEL ====================
 class AdminPanel {
     static allProducts = [];
     static allCategories = [];
     static allUsers = [];
 
     static async init() {
-        console.log('🔧 AdminPanel init');
-        
+        console.log('🔧 AdminPanel initializing...');
+
+        // Check auth
         if (typeof AuthManager !== 'undefined' && !AuthManager.isLoggedIn()) {
             window.location.href = '/login.html';
             return;
         }
-        
-        if (typeof UI !== 'undefined') UI.displayUserInfo();
-        
+
+        // Display user info
+        if (typeof UI !== 'undefined') {
+            UI.displayUserInfo();
+        }
+
+        // Ensure default categories exist
         await CategoryManager.ensureDefaults();
+
+        // Load all data
         await this.loadAll();
-        this.setupListeners();
-        
+
+        // Setup event listeners
+        this.setupEventListeners();
+
         console.log('✅ AdminPanel ready');
     }
 
+    // ==================== LOAD DATA ====================
+    
     static async loadAll() {
-        await this.loadCategories();
-        await this.loadProducts();
-        await this.loadUsers();
+        await Promise.all([
+            this.loadCategories(),
+            this.loadProducts(),
+            this.loadUsers()
+        ]);
     }
 
     static async loadCategories() {
-        this.allCategories = await DB.getCategories();
-        this.allCategories.sort((a, b) => a.displayOrder - b.displayOrder);
-        
-        // Update select
+        try {
+            this.allCategories = await DB.getCategories();
+            this.allCategories.sort((a, b) => a.displayOrder - b.displayOrder);
+        } catch (e) {
+            console.error('Error loading categories:', e);
+            this.allCategories = [];
+        }
+
+        // Update select in product form
         const select = document.getElementById('product-category');
         if (select) {
-            select.innerHTML = '<option value="">انتخاب کنید...</option>' +
-                this.allCategories.map(c => `<option value="${c.id}">${c.icon || ''} ${c.name}</option>`).join('');
+            select.innerHTML = '<option value="">انتخاب دسته‌بندی...</option>' +
+                this.allCategories.map(c => 
+                    `<option value="${c.id}">${c.icon || '📂'} ${c.name}</option>`
+                ).join('');
         }
-        
-        // Render list
+
+        // Render categories list
         const container = document.getElementById('categories-list');
         if (container) {
+            if (this.allCategories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">📂</span>
+                        <p>هیچ دسته‌بندی یافت نشد</p>
+                    </div>`;
+                return;
+            }
+
             container.innerHTML = this.allCategories.map(cat => `
                 <div class="category-card-admin">
                     <div class="category-info">
@@ -176,40 +280,67 @@ class AdminPanel {
         }
     }
 
-    static async loadProducts(search = '') {
-        this.allProducts = await DB.getProducts();
-        
-        let filtered = this.allProducts;
-        if (search) {
-            const term = search.toLowerCase();
-            filtered = filtered.filter(p => p.name.toLowerCase().includes(term));
+    static async loadProducts(searchTerm = '') {
+        try {
+            this.allProducts = await DB.getProducts();
+        } catch (e) {
+            console.error('Error loading products:', e);
+            this.allProducts = [];
         }
+
+        // Apply search filter
+        let filtered = [...this.allProducts];
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(p => 
+                p.name.toLowerCase().includes(term) ||
+                (p.description && p.description.toLowerCase().includes(term))
+            );
+        }
+
+        // Sort by display order
         filtered.sort((a, b) => a.displayOrder - b.displayOrder);
-        
+
+        // Render
         const container = document.getElementById('products-list');
         if (!container) return;
-        
+
         if (filtered.length === 0) {
-            container.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><p>محصولی یافت نشد</p></div>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">📦</span>
+                    <p>${searchTerm ? 'محصولی با این مشخصات یافت نشد' : 'هنوز هیچ محصولی ثبت نشده'}</p>
+                    ${!searchTerm ? '<p style="font-size:0.9rem;color:var(--text-light);">روی "افزودن محصول جدید" کلیک کنید</p>' : ''}
+                </div>`;
             return;
         }
-        
+
         container.innerHTML = filtered.map(product => {
-            const cat = this.allCategories.find(c => c.id === product.categoryId);
-            const catName = cat ? `${cat.icon || ''} ${cat.name}` : 'بدون دسته';
-            
+            const category = this.allCategories.find(c => c.id === product.categoryId);
+            const categoryName = category ? `${category.icon || ''} ${category.name}` : 'بدون دسته';
+
             return `
                 <div class="product-card-admin">
-                    <img src="${product.image || '/assets/images/logo-placeholder.png'}" alt="${product.name}" onerror="this.style.display='none'">
+                    <img src="${product.image || '/assets/images/logo-placeholder.png'}" 
+                         alt="${product.name}"
+                         onerror="this.style.display='none'">
                     <div class="product-info-admin">
                         <h3>${product.name}</h3>
                         <div class="product-price">💰 ${UI.formatCurrency(product.price)}</div>
-                        <div class="product-category">📂 ${catName}</div>
-                        <span class="product-status ${product.isActive ? 'active' : 'inactive'}">${product.isActive ? '✅ فعال' : '❌ غیرفعال'}</span>
+                        <div class="product-category">📂 ${categoryName}</div>
+                        <span class="product-status ${product.isActive ? 'active' : 'inactive'}">
+                            ${product.isActive ? '✅ فعال' : '❌ غیرفعال'}
+                        </span>
                         <div class="product-actions">
-                            <button class="btn-action btn-edit" onclick="AdminPanel.openEditModal('${product.id}')">✏️ ویرایش</button>
-                            <button class="btn-action btn-toggle" onclick="AdminPanel.toggleProduct('${product.id}')">${product.isActive ? '🚫 غیرفعال' : '✅ فعال'}</button>
-                            <button class="btn-action btn-delete" onclick="AdminPanel.deleteProduct('${product.id}')">🗑️ حذف</button>
+                            <button class="btn-action btn-edit" onclick="AdminPanel.openEditModal('${product.id}')">
+                                ✏️ ویرایش
+                            </button>
+                            <button class="btn-action btn-toggle" onclick="AdminPanel.toggleProduct('${product.id}')">
+                                ${product.isActive ? '🚫 غیرفعال' : '✅ فعال'}
+                            </button>
+                            <button class="btn-action btn-delete" onclick="AdminPanel.deleteProduct('${product.id}')">
+                                🗑️ حذف
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -218,24 +349,33 @@ class AdminPanel {
     }
 
     static async loadUsers() {
-        const users = DB._localGet('users') || [];
-        this.allUsers = users;
-        
+        try {
+            this.allUsers = JSON.parse(localStorage.getItem('ara_users') || '[]');
+        } catch (e) {
+            this.allUsers = [];
+        }
+
         const container = document.getElementById('users-list');
         if (!container) return;
-        
-        if (users.length === 0) {
-            container.innerHTML = '<div class="empty-state"><span class="empty-icon">👤</span><p>کاربری یافت نشد</p></div>';
+
+        if (this.allUsers.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">👤</span>
+                    <p>هیچ کاربری یافت نشد</p>
+                </div>`;
             return;
         }
-        
-        container.innerHTML = users.map(user => `
+
+        container.innerHTML = this.allUsers.map(user => `
             <div class="user-card-admin">
                 <div class="user-info">
                     <div class="user-avatar-large">${user.username.charAt(0).toUpperCase()}</div>
                     <div class="user-details">
                         <h3>${user.username}</h3>
-                        <span class="user-role-badge ${user.role}">${user.role === 'admin' ? '👑 مدیر' : '💼 صندوق‌دار'}</span>
+                        <span class="user-role-badge ${user.role}">
+                            ${user.role === 'admin' ? '👑 مدیر' : '💼 صندوق‌دار'}
+                        </span>
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;">
@@ -246,167 +386,305 @@ class AdminPanel {
         `).join('');
     }
 
-    // ==================== SETUP ====================
+    // ==================== EVENT LISTENERS ====================
     
-    static setupListeners() {
-        // Tabs
+    static setupEventListeners() {
+        // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
                 this.classList.add('active');
-                document.getElementById('tab-' + this.dataset.tab)?.classList.add('active');
+                const tabId = 'tab-' + this.dataset.tab;
+                const tabContent = document.getElementById(tabId);
+                if (tabContent) tabContent.classList.add('active');
             });
         });
 
-        // Add product
-        document.getElementById('add-product-btn')?.addEventListener('click', () => this.openAddModal());
-        
-        // Add category
-        document.getElementById('add-category-btn')?.addEventListener('click', () => this.addCategoryDialog());
-        
-        // Add user
-        document.getElementById('add-user-btn')?.addEventListener('click', () => this.openUserModal());
-        
-        // Search
-        document.getElementById('product-search')?.addEventListener('input', (e) => this.loadProducts(e.target.value));
-        
-        // Product form
-        document.getElementById('product-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.saveProduct();
-        });
-        
-        // User form
-        document.getElementById('user-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.saveUser();
-        });
-        
-        // Close modals
-        document.getElementById('modal-close')?.addEventListener('click', () => this.closeProductModal());
-        document.getElementById('user-modal-close')?.addEventListener('click', () => this.closeUserModal());
-        document.getElementById('product-modal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) this.closeProductModal(); });
-        document.getElementById('user-modal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) this.closeUserModal(); });
-        
+        // Add product button
+        const addProductBtn = document.getElementById('add-product-btn');
+        if (addProductBtn) {
+            addProductBtn.addEventListener('click', () => this.openAddModal());
+        }
+
+        // Add category button
+        const addCategoryBtn = document.getElementById('add-category-btn');
+        if (addCategoryBtn) {
+            addCategoryBtn.addEventListener('click', () => this.addCategoryDialog());
+        }
+
+        // Add user button
+        const addUserBtn = document.getElementById('add-user-btn');
+        if (addUserBtn) {
+            addUserBtn.addEventListener('click', () => this.openUserModal());
+        }
+
+        // Product search
+        const searchInput = document.getElementById('product-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => this.loadProducts(e.target.value));
+        }
+
+        // Product form submit
+        const productForm = document.getElementById('product-form');
+        if (productForm) {
+            productForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.saveProduct();
+            });
+        }
+
+        // User form submit
+        const userForm = document.getElementById('user-form');
+        if (userForm) {
+            userForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.saveUser();
+            });
+        }
+
+        // Modal close buttons
+        const modalClose = document.getElementById('modal-close');
+        if (modalClose) {
+            modalClose.addEventListener('click', () => this.closeProductModal());
+        }
+
+        const userModalClose = document.getElementById('user-modal-close');
+        if (userModalClose) {
+            userModalClose.addEventListener('click', () => this.closeUserModal());
+        }
+
+        // Close modals on overlay click
+        const productModal = document.getElementById('product-modal');
+        if (productModal) {
+            productModal.addEventListener('click', function(e) {
+                if (e.target === this) AdminPanel.closeProductModal();
+            });
+        }
+
+        const userModal = document.getElementById('user-modal');
+        if (userModal) {
+            userModal.addEventListener('click', function(e) {
+                if (e.target === this) AdminPanel.closeUserModal();
+            });
+        }
+
         // Image preview
-        document.getElementById('product-image')?.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const preview = document.getElementById('image-preview');
-            if (file && preview) {
-                const reader = new FileReader();
-                reader.onload = (ev) => { preview.src = ev.target.result; preview.style.display = 'block'; };
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        // ESC
+        const imageInput = document.getElementById('product-image');
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const preview = document.getElementById('image-preview');
+                if (file && preview) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        preview.src = ev.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else if (preview) {
+                    preview.style.display = 'none';
+                }
+            });
+        }
+
+        // ESC key to close modals
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') { this.closeProductModal(); this.closeUserModal(); }
+            if (e.key === 'Escape') {
+                this.closeProductModal();
+                this.closeUserModal();
+            }
         });
     }
 
     // ==================== PRODUCT MODAL ====================
     
     static openAddModal() {
-        document.getElementById('modal-title').textContent = '➕ افزودن محصول جدید';
-        document.getElementById('product-form').reset();
+        const modal = document.getElementById('product-modal');
+        const title = document.getElementById('modal-title');
+        const form = document.getElementById('product-form');
+        
+        if (!modal || !title || !form) return;
+
+        title.textContent = '➕ افزودن محصول جدید';
+        form.reset();
         document.getElementById('product-id').value = '';
         document.getElementById('product-active').checked = true;
-        document.getElementById('image-preview').style.display = 'none';
-        document.getElementById('product-modal').classList.add('open');
+        
+        const preview = document.getElementById('image-preview');
+        if (preview) preview.style.display = 'none';
+        
+        modal.classList.add('open');
+        
+        // Refresh categories in select
         this.loadCategories();
     }
 
     static async openEditModal(productId) {
-        const product = (await DB.getProducts()).find(p => p.id === productId);
-        if (!product) return UI.showToast('error', 'محصول یافت نشد');
+        try {
+            const product = await DB.getById('products', productId);
+            
+            if (!product) {
+                UI.showToast('error', 'محصول یافت نشد');
+                return;
+            }
 
-        document.getElementById('modal-title').textContent = '✏️ ویرایش محصول';
-        document.getElementById('product-id').value = product.id;
-        document.getElementById('product-name').value = product.name;
-        document.getElementById('product-price').value = product.price;
-        document.getElementById('product-description').value = product.description || '';
-        document.getElementById('product-active').checked = product.isActive;
-        
-        const preview = document.getElementById('image-preview');
-        if (product.image) {
-            preview.src = product.image;
-            preview.style.display = 'block';
-        } else {
-            preview.style.display = 'none';
+            const modal = document.getElementById('product-modal');
+            const title = document.getElementById('modal-title');
+            
+            if (!modal || !title) return;
+
+            title.textContent = '✏️ ویرایش محصول';
+            document.getElementById('product-id').value = product.id;
+            document.getElementById('product-name').value = product.name || '';
+            document.getElementById('product-price').value = product.price || 0;
+            document.getElementById('product-description').value = product.description || '';
+            document.getElementById('product-active').checked = product.isActive !== false;
+
+            // Show existing image
+            const preview = document.getElementById('image-preview');
+            if (preview && product.image) {
+                preview.src = product.image;
+                preview.style.display = 'block';
+            } else if (preview) {
+                preview.style.display = 'none';
+            }
+
+            // Refresh and set category
+            await this.loadCategories();
+            document.getElementById('product-category').value = product.categoryId || '';
+
+            modal.classList.add('open');
+            
+        } catch (error) {
+            console.error('Error opening edit modal:', error);
+            UI.showToast('error', 'خطا در بارگذاری محصول');
         }
-        
-        await this.loadCategories();
-        document.getElementById('product-category').value = product.categoryId;
-        document.getElementById('product-modal').classList.add('open');
     }
 
     static closeProductModal() {
-        document.getElementById('product-modal')?.classList.remove('open');
+        const modal = document.getElementById('product-modal');
+        if (modal) modal.classList.remove('open');
     }
 
     static async saveProduct() {
         const productId = document.getElementById('product-id').value;
-        const data = {
-            name: document.getElementById('product-name').value.trim(),
-            categoryId: document.getElementById('product-category').value,
-            price: parseFloat(document.getElementById('product-price').value),
-            description: document.getElementById('product-description').value.trim(),
-            isActive: document.getElementById('product-active').checked
-        };
+        const name = document.getElementById('product-name').value.trim();
+        const categoryId = document.getElementById('product-category').value;
+        const price = parseFloat(document.getElementById('product-price').value);
+        const description = document.getElementById('product-description').value.trim();
+        const isActive = document.getElementById('product-active').checked;
 
-        if (!data.name) return UI.showToast('error', 'نام محصول الزامی است');
-        if (!data.categoryId) return UI.showToast('error', 'دسته‌بندی را انتخاب کنید');
-        if (isNaN(data.price) || data.price < 0) return UI.showToast('error', 'قیمت نامعتبر است');
-
-        // Handle image
-        const imageFile = document.getElementById('product-image').files[0];
-        if (imageFile) {
-            data.image = await this.fileToBase64(imageFile);
-        } else if (productId) {
-            const existing = (await DB.getProducts()).find(p => p.id === productId);
-            if (existing) data.image = existing.image;
+        // Validation
+        if (!name) {
+            UI.showToast('error', '❌ نام محصول الزامی است');
+            return;
+        }
+        if (!categoryId) {
+            UI.showToast('error', '❌ دسته‌بندی را انتخاب کنید');
+            return;
+        }
+        if (isNaN(price) || price < 0) {
+            UI.showToast('error', '❌ قیمت نامعتبر است');
+            return;
         }
 
+        const productData = {
+            name: name,
+            categoryId: categoryId,
+            price: price,
+            description: description,
+            isActive: isActive
+        };
+
         try {
-            if (productId) {
-                await ProductManager.updateProduct(productId, data);
-            } else {
-                await ProductManager.addProduct(data);
+            // Handle image
+            const imageFile = document.getElementById('product-image').files[0];
+            if (imageFile) {
+                productData.image = await this.fileToBase64(imageFile);
+            } else if (productId) {
+                // Keep existing image when editing
+                const existing = await DB.getById('products', productId);
+                if (existing && existing.image) {
+                    productData.image = existing.image;
+                }
             }
+
+            let result;
+            if (productId) {
+                // Update existing product
+                result = await ProductManager.updateProduct(productId, productData);
+            } else {
+                // Add new product
+                result = await ProductManager.addProduct(productData);
+            }
+
+            // Close modal and reload
             this.closeProductModal();
             await this.loadProducts();
+
+            // Keep search term if any
+            const searchInput = document.getElementById('product-search');
+            if (searchInput && searchInput.value) {
+                await this.loadProducts(searchInput.value);
+            }
+
         } catch (error) {
-            UI.showToast('error', error.message);
+            console.error('Error saving product:', error);
+            UI.showToast('error', '❌ خطا: ' + error.message);
         }
     }
 
     // ==================== PRODUCT ACTIONS ====================
     
     static async toggleProduct(productId) {
-        await ProductManager.toggleProductStatus(productId);
-        await this.loadProducts();
+        try {
+            await ProductManager.toggleProductStatus(productId);
+            await this.loadProducts();
+            
+            // Keep search term
+            const searchInput = document.getElementById('product-search');
+            if (searchInput && searchInput.value) {
+                await this.loadProducts(searchInput.value);
+            }
+        } catch (error) {
+            console.error('Error toggling product:', error);
+            UI.showToast('error', 'خطا: ' + error.message);
+        }
     }
 
     static async deleteProduct(productId) {
-        const product = (await DB.getProducts()).find(p => p.id === productId);
-        if (!product) return;
-        
-        if (!confirm(`آیا از حذف "${product.name}" اطمینان دارید؟`)) return;
-        
-        await ProductManager.deleteProduct(productId);
-        await this.loadProducts();
+        try {
+            const product = await DB.getById('products', productId);
+            if (!product) {
+                UI.showToast('error', 'محصول یافت نشد');
+                return;
+            }
+
+            if (!confirm(`آیا از حذف "${product.name}" اطمینان دارید؟\nاین عملیات قابل بازگشت نیست!`)) {
+                return;
+            }
+
+            await ProductManager.deleteProduct(productId);
+            await this.loadProducts();
+            
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            UI.showToast('error', 'خطا: ' + error.message);
+        }
     }
 
     // ==================== CATEGORY ACTIONS ====================
     
     static async addCategoryDialog() {
-        const name = prompt('نام دسته‌بندی جدید:');
-        if (!name?.trim()) return;
-        const icon = prompt('آیکون (مثال: ☕ 🍰):', '📂');
+        const name = prompt('📂 نام دسته‌بندی جدید:');
+        if (!name || !name.trim()) return;
+
+        const icon = prompt('🎨 آیکون (مثال: ☕ 🍰 🥤):', '📂');
+
         try {
-            await CategoryManager.addCategory(name, icon || '📂');
+            await CategoryManager.addCategory(name.trim(), icon || '📂');
             await this.loadCategories();
         } catch (error) {
             UI.showToast('error', error.message);
@@ -414,16 +692,25 @@ class AdminPanel {
     }
 
     static async editCategory(categoryId) {
-        const category = (await DB.getCategories()).find(c => c.id === categoryId);
-        if (!category) return UI.showToast('error', 'دسته‌بندی یافت نشد');
-        
-        const name = prompt('نام جدید:', category.name);
-        if (!name?.trim()) return;
-        const icon = prompt('آیکون جدید:', category.icon || '📂');
-        
         try {
-            await CategoryManager.updateCategory(categoryId, { name: name.trim(), icon: icon || category.icon });
+            const category = await DB.getById('categories', categoryId);
+            if (!category) {
+                UI.showToast('error', 'دسته‌بندی یافت نشد');
+                return;
+            }
+
+            const newName = prompt('📝 نام جدید:', category.name);
+            if (!newName || !newName.trim()) return;
+
+            const newIcon = prompt('🎨 آیکون جدید:', category.icon || '📂');
+
+            await CategoryManager.updateCategory(categoryId, {
+                name: newName.trim(),
+                icon: newIcon || category.icon
+            });
+
             await this.loadCategories();
+            
         } catch (error) {
             UI.showToast('error', error.message);
         }
@@ -438,28 +725,38 @@ class AdminPanel {
         }
     }
 
-    // ==================== USER ACTIONS ====================
+    // ==================== USER MODAL ====================
     
     static openUserModal(userData = null) {
-        document.getElementById('user-form').reset();
-        document.getElementById('user-id').value = '';
+        const modal = document.getElementById('user-modal');
+        const form = document.getElementById('user-form');
+        const title = document.getElementById('user-modal-title');
         
+        if (!modal || !form || !title) return;
+
+        form.reset();
+        document.getElementById('user-id').value = '';
+
         if (userData) {
-            document.getElementById('user-modal-title').textContent = '✏️ ویرایش کاربر';
+            title.textContent = '✏️ ویرایش کاربر';
             document.getElementById('user-id').value = userData.id;
             document.getElementById('user-username').value = userData.username;
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-password').placeholder = 'رمز جدید (خالی = بدون تغییر)';
             document.getElementById('user-password').required = false;
             document.getElementById('user-role').value = userData.role;
         } else {
-            document.getElementById('user-modal-title').textContent = '➕ افزودن کاربر جدید';
+            title.textContent = '➕ افزودن کاربر جدید';
+            document.getElementById('user-password').placeholder = 'حداقل ۴ کاراکتر';
             document.getElementById('user-password').required = true;
         }
-        
-        document.getElementById('user-modal').classList.add('open');
+
+        modal.classList.add('open');
     }
 
     static closeUserModal() {
-        document.getElementById('user-modal')?.classList.remove('open');
+        const modal = document.getElementById('user-modal');
+        if (modal) modal.classList.remove('open');
     }
 
     static async saveUser() {
@@ -468,53 +765,81 @@ class AdminPanel {
         const password = document.getElementById('user-password').value;
         const role = document.getElementById('user-role').value;
 
-        if (!username) return UI.showToast('error', 'نام کاربری الزامی است');
-        if (!userId && (!password || password.length < 4)) return UI.showToast('error', 'رمز عبور حداقل ۴ کاراکتر');
-
-        let users = this.allUsers;
-        
-        if (userId) {
-            const index = users.findIndex(u => u.id === userId);
-            if (index > -1) {
-                users[index].username = username;
-                users[index].role = role;
-                if (password) {
-                    users[index].passwordHash = await AuthManager._hashPassword(password);
-                }
-            }
-        } else {
-            users.push({
-                id: 'user-' + Date.now(),
-                username,
-                passwordHash: await AuthManager._hashPassword(password),
-                role,
-                isActive: true,
-                createdAt: new Date().toISOString()
-            });
+        if (!username) {
+            UI.showToast('error', '❌ نام کاربری الزامی است');
+            return;
         }
 
-        DB._localSet('users', users);
-        this.allUsers = users;
-        UI.showToast('success', '✅ کاربر ذخیره شد');
-        this.closeUserModal();
-        await this.loadUsers();
+        if (!userId && (!password || password.length < 4)) {
+            UI.showToast('error', '❌ رمز عبور حداقل ۴ کاراکتر');
+            return;
+        }
+
+        try {
+            let users = JSON.parse(localStorage.getItem('ara_users') || '[]');
+
+            if (userId) {
+                // Edit existing user
+                const index = users.findIndex(u => u.id === userId);
+                if (index > -1) {
+                    users[index].username = username;
+                    users[index].role = role;
+                    if (password) {
+                        users[index].passwordHash = await this.hashPassword(password);
+                    }
+                }
+                UI.showToast('success', '✅ کاربر بروزرسانی شد');
+            } else {
+                // Add new user
+                const hashedPassword = await this.hashPassword(password);
+                users.push({
+                    id: 'user-' + Date.now(),
+                    username: username,
+                    passwordHash: hashedPassword,
+                    role: role,
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                });
+                UI.showToast('success', '✅ کاربر جدید اضافه شد');
+            }
+
+            localStorage.setItem('ara_users', JSON.stringify(users));
+            this.allUsers = users;
+            
+            this.closeUserModal();
+            await this.loadUsers();
+            
+        } catch (error) {
+            console.error('Error saving user:', error);
+            UI.showToast('error', '❌ خطا: ' + error.message);
+        }
     }
 
     static async editUser(userId) {
         const user = this.allUsers.find(u => u.id === userId);
-        if (user) this.openUserModal(user);
+        if (user) {
+            this.openUserModal(user);
+        }
     }
 
     static async deleteUser(userId) {
         const user = this.allUsers.find(u => u.id === userId);
         if (!user) return;
-        if (user.role === 'admin' && this.allUsers.filter(u => u.role === 'admin').length <= 1) {
-            return UI.showToast('warning', 'حداقل یک مدیر باید وجود داشته باشد');
+
+        // Prevent deleting last admin
+        if (user.role === 'admin') {
+            const adminCount = this.allUsers.filter(u => u.role === 'admin').length;
+            if (adminCount <= 1) {
+                UI.showToast('warning', '⚠️ حداقل یک مدیر باید وجود داشته باشد');
+                return;
+            }
         }
-        if (!confirm(`حذف کاربر "${user.username}"؟`)) return;
-        
+
+        if (!confirm(`آیا از حذف کاربر "${user.username}" اطمینان دارید؟`)) return;
+
         this.allUsers = this.allUsers.filter(u => u.id !== userId);
-        DB._localSet('users', this.allUsers);
+        localStorage.setItem('ara_users', JSON.stringify(this.allUsers));
+        
         UI.showToast('success', '🗑️ کاربر حذف شد');
         await this.loadUsers();
     }
@@ -525,8 +850,16 @@ class AdminPanel {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
+            reader.onerror = (error) => reject(error);
             reader.readAsDataURL(file);
         });
+    }
+
+    static async hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 }

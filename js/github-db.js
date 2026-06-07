@@ -1,251 +1,220 @@
-// github-db.js - نسخه نهایی و تست شده
+// github-db.js - نسخه اصلاح شده Write
 class GitHubDB {
     constructor() {
         this.cache = {};
-        this.cacheTime = 10000;
-        console.log('📦 GitHubDB initialized');
-        console.log('👤 Owner:', this.OWNER);
-        console.log('📁 Repo:', this.REPO);
+        this.cacheTime = 5000;
+        console.log('📦 GitHubDB Ready');
     }
 
-    get OWNER() {
-        return localStorage.getItem('ara_github_owner') || 'alikarami28';
-    }
-    
-    get REPO() {
-        return localStorage.getItem('ara_github_repo') || 'ARA-Coffee-POS';
-    }
-    
-    get BRANCH() {
-        return localStorage.getItem('ara_github_branch') || 'main';
-    }
-    
-    get BASE_PATH() {
-        return 'data';
-    }
+    get OWNER() { return localStorage.getItem('ara_github_owner') || 'alikarami28'; }
+    get REPO() { return localStorage.getItem('ara_github_repo') || 'ARA-Coffee-POS'; }
+    get BRANCH() { return localStorage.getItem('ara_github_branch') || 'main'; }
+    get BASE_PATH() { return 'data'; }
 
-    _getToken() {
-        const token = localStorage.getItem('ara_github_token') || '';
-        return token;
-    }
+    _getToken() { return localStorage.getItem('ara_github_token') || ''; }
 
     _getHeaders() {
         const token = this._getToken();
-        const headers = {
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-        };
-        if (token) {
-            headers['Authorization'] = 'Bearer ' + token;
-        }
-        return headers;
+        const h = { 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
+        if (token) h['Authorization'] = 'Bearer ' + token;
+        return h;
     }
 
     // ==================== READ ====================
     async read(fileName) {
-        // Try cache
-        if (this.cache[fileName] && (Date.now() - this.cache[fileName].time) < this.cacheTime) {
-            return this.cache[fileName].data;
-        }
-
-        // Try GitHub Raw
-        try {
-            const url = `https://raw.githubusercontent.com/${this.OWNER}/${this.REPO}/${this.BRANCH}/${this.BASE_PATH}/${fileName}.json?t=${Date.now()}`;
-            console.log('🌐 Reading:', url);
-            
-            const response = await fetch(url);
-            
-            if (response.ok) {
-                const data = await response.json();
-                this.cache[fileName] = { data, time: Date.now() };
+        // اول از localStorage
+        const local = this._localGet(fileName);
+        
+        // در پس‌زمینه از GitHub آپدیت کن
+        this._fetchGH(fileName).then(data => {
+            if (data) {
                 this._localSet(fileName, data);
-                console.log('✅', fileName, 'loaded from GitHub');
+                this.cache[fileName] = { data, time: Date.now() };
+            }
+        }).catch(() => {});
+        
+        if (local) return local;
+        
+        // اگه localStorage خالی بود
+        try {
+            const data = await this._fetchGH(fileName);
+            if (data) {
+                this._localSet(fileName, data);
                 return data;
             }
-        } catch (e) {
-            console.warn('GitHub read failed:', e.message);
-        }
-
-        // Fallback to localStorage
-        const local = this._localGet(fileName);
-        if (local) {
-            this.cache[fileName] = { data: local, time: Date.now() };
-            return local;
-        }
-
-        // Default
+        } catch (e) {}
+        
         return this._getDefault(fileName);
     }
 
-    async getProducts() { 
-        const data = await this.read('products'); 
-        return data?.products || []; 
+    async _fetchGH(fileName) {
+        try {
+            const url = `https://raw.githubusercontent.com/${this.OWNER}/${this.REPO}/${this.BRANCH}/${this.BASE_PATH}/${fileName}.json?t=${Date.now()}`;
+            const response = await fetch(url);
+            if (response.ok) return await response.json();
+        } catch (e) {}
+        return null;
     }
-    
-    async getCategories() { 
-        const data = await this.read('categories'); 
-        return data?.categories || []; 
-    }
-    
-    async getSettings() { 
-        return await this.read('settings'); 
-    }
-    
-    async getOrders() { 
-        const data = await this.read('orders'); 
-        return data?.orders || []; 
-    }
+
+    async getProducts() { const d = await this.read('products'); return d?.products || []; }
+    async getCategories() { const d = await this.read('categories'); return d?.categories || []; }
+    async getSettings() { return await this.read('settings'); }
+    async getOrders() { const d = await this.read('orders'); return d?.orders || []; }
 
     // ==================== WRITE ====================
     async write(fileName, data) {
+        // همیشه اول localStorage
+        this._localSet(fileName, data);
+        this.cache[fileName] = { data, time: Date.now() };
+        
         const token = this._getToken();
         
         if (!token) {
-            console.warn('⚠️ No token - saving locally');
-            this._localSet(fileName, data);
-            return { success: false, message: 'توکن وارد نشده' };
+            console.warn('⚠️ No token - localStorage only');
+            return { success: false, message: 'توکن نیست - فقط در مرورگر ذخیره شد' };
         }
 
         try {
             const apiUrl = `https://api.github.com/repos/${this.OWNER}/${this.REPO}/contents/${this.BASE_PATH}/${fileName}.json`;
-            console.log('📝 Writing to:', apiUrl);
+            console.log('📝 Writing to GitHub:', apiUrl);
             
-            // Get SHA if exists
+            // Get SHA
             let sha = null;
             try {
                 const checkRes = await fetch(apiUrl, { headers: this._getHeaders() });
                 if (checkRes.ok) {
                     const fileInfo = await checkRes.json();
                     sha = fileInfo.sha;
+                    console.log('📄 File exists, SHA:', sha?.substring(0, 8));
+                } else {
+                    console.log('📄 File does not exist, creating new');
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.log('📄 SHA check failed:', e.message);
+            }
 
-            // Prepare content
             const jsonStr = JSON.stringify(data, null, 2);
             const content = btoa(unescape(encodeURIComponent(jsonStr)));
-
+            
             const body = {
-                message: '📝 Update ' + fileName + '.json',
+                message: '📝 Update ' + fileName + '.json - ' + new Date().toLocaleString('fa-IR'),
                 content: content,
                 branch: this.BRANCH
             };
             if (sha) body.sha = sha;
 
+            console.log('📤 Sending to GitHub...');
             const response = await fetch(apiUrl, {
                 method: 'PUT',
                 headers: this._getHeaders(),
                 body: JSON.stringify(body)
             });
 
+            console.log('📡 Response status:', response.status);
+
             if (response.ok) {
-                this.cache[fileName] = { data, time: Date.now() };
-                this._localSet(fileName, data);
-                console.log('✅ Saved to GitHub');
-                return { success: true, message: '✅ در GitHub ذخیره شد' };
+                const result = await response.json();
+                console.log('✅ Successfully saved to GitHub!');
+                console.log('📝 Commit:', result.commit?.message);
+                console.log('🔗 URL:', result.content?.html_url);
+                
+                return { 
+                    success: true, 
+                    message: '✅ در GitHub ذخیره شد',
+                    url: result.content?.html_url
+                };
             } else {
-                const err = await response.json();
-                throw new Error(err.message);
+                const error = await response.json();
+                console.error('❌ GitHub API Error:', error);
+                throw new Error(error.message || 'Unknown error');
             }
+            
         } catch (error) {
-            console.error('❌ Write error:', error.message);
-            this._localSet(fileName, data);
-            return { success: false, message: error.message };
+            console.error('❌ GitHub write failed:', error.message);
+            return { 
+                success: false, 
+                message: '❌ GitHub: ' + error.message + ' - فقط در مرورگر ذخیره شد'
+            };
         }
     }
 
     async saveProducts(products) { 
-        return this.write('products', { 
-            version: '1.0', 
-            lastUpdated: new Date().toISOString(), 
-            products 
-        }); 
+        const data = { version: '1.0', lastUpdated: new Date().toISOString(), products };
+        return await this.write('products', data); 
     }
-    
     async saveCategories(categories) { 
-        return this.write('categories', { 
-            version: '1.0', 
-            lastUpdated: new Date().toISOString(), 
-            categories 
-        }); 
+        const data = { version: '1.0', lastUpdated: new Date().toISOString(), categories };
+        return await this.write('categories', data); 
     }
-    
-    async saveSettings(settings) { 
-        return this.write('settings', settings); 
-    }
-    
+    async saveSettings(settings) { return await this.write('settings', settings); }
     async saveOrders(orders) { 
-        return this.write('orders', { 
-            version: '1.0', 
-            orders 
-        }); 
+        const data = { version: '1.0', orders };
+        return await this.write('orders', data); 
     }
 
     // ==================== CRUD ====================
     async addProduct(p) { 
-        const products = await this.getProducts(); 
-        products.push(p); 
-        await this.saveProducts(products); 
-        return p; 
+        const prods = await this.getProducts(); 
+        prods.push(p); 
+        const result = await this.saveProducts(prods);
+        console.log('📦 addProduct result:', result);
+        return { product: p, result: result };
     }
     
     async updateProduct(id, updates) { 
-        const products = await this.getProducts(); 
-        const i = products.findIndex(p => p.id === id); 
+        const prods = await this.getProducts(); 
+        const i = prods.findIndex(x => x.id === id); 
         if (i > -1) { 
-            products[i] = { ...products[i], ...updates, updatedAt: new Date().toISOString() }; 
-            await this.saveProducts(products); 
-            return products[i]; 
+            prods[i] = { ...prods[i], ...updates, updatedAt: new Date().toISOString() }; 
+            const result = await this.saveProducts(prods);
+            return { product: prods[i], result: result };
         } 
         return null; 
     }
     
     async deleteProduct(id) { 
-        const products = await this.getProducts(); 
-        await this.saveProducts(products.filter(p => p.id !== id)); 
-        return true; 
+        const prods = await this.getProducts(); 
+        const result = await this.saveProducts(prods.filter(p => p.id !== id)); 
+        return { success: true, result: result }; 
     }
     
     async toggleProductStatus(id) { 
-        const products = await this.getProducts(); 
-        const p = products.find(x => x.id === id); 
+        const prods = await this.getProducts(); 
+        const p = prods.find(x => x.id === id); 
         if (p) { 
             p.isActive = !p.isActive; 
             p.updatedAt = new Date().toISOString(); 
-            await this.saveProducts(products); 
-            return p; 
+            const result = await this.saveProducts(prods);
+            return { product: p, result: result }; 
         } 
         return null; 
     }
     
     async addCategory(c) { 
-        const categories = await this.getCategories(); 
-        categories.push(c); 
-        await this.saveCategories(categories); 
-        return c; 
+        const cats = await this.getCategories(); 
+        cats.push(c); 
+        return await this.saveCategories(cats); 
     }
     
     async updateCategory(id, updates) { 
-        const categories = await this.getCategories(); 
-        const i = categories.findIndex(c => c.id === id); 
+        const cats = await this.getCategories(); 
+        const i = cats.findIndex(x => x.id === id); 
         if (i > -1) { 
-            categories[i] = { ...categories[i], ...updates }; 
-            await this.saveCategories(categories); 
-            return categories[i]; 
+            cats[i] = { ...cats[i], ...updates }; 
+            return await this.saveCategories(cats); 
         } 
         return null; 
     }
     
     async deleteCategory(id) { 
-        const categories = await this.getCategories(); 
-        await this.saveCategories(categories.filter(c => c.id !== id)); 
-        return true; 
+        const cats = await this.getCategories(); 
+        return await this.saveCategories(cats.filter(c => c.id !== id)); 
     }
     
     async addOrder(o) { 
         const orders = await this.getOrders(); 
         orders.push(o); 
-        await this.saveOrders(orders); 
-        return o; 
+        return await this.saveOrders(orders); 
     }
 
     // ==================== COMPATIBILITY ====================
@@ -258,37 +227,23 @@ class GitHubDB {
             default: return [];
         }
     }
-    
-    async getById(store, id) { 
-        const items = await this.getAll(store); 
-        return items.find(i => i.id === id) || null; 
-    }
+    async getById(store, id) { const items = await this.getAll(store); return items.find(i => i.id === id) || null; }
     
     async add(store, item) {
         switch (store) {
-            case 'products': return await this.addProduct(item);
+            case 'products': const r1 = await this.addProduct(item); return r1.product || item;
             case 'categories': return await this.addCategory(item);
             case 'orders': return await this.addOrder(item);
-            case 'users': { 
-                const u = this._localGet('users') || []; 
-                u.push(item); 
-                this._localSet('users', u); 
-                return item; 
-            }
+            case 'users': { const u = this._localGet('users') || []; u.push(item); this._localSet('users', u); return item; }
             default: return item;
         }
     }
     
     async update(store, item) {
         switch (store) {
-            case 'products': return await this.updateProduct(item.id, item);
+            case 'products': const r2 = await this.updateProduct(item.id, item); return r2?.product || item;
             case 'categories': return await this.updateCategory(item.id, item);
-            case 'users': { 
-                const u = this._localGet('users') || []; 
-                const i = u.findIndex(x => x.id === item.id); 
-                if (i > -1) { u[i] = item; this._localSet('users', u); } 
-                return item; 
-            }
+            case 'users': { const u = this._localGet('users') || []; const i = u.findIndex(x => x.id === item.id); if (i > -1) u[i] = item; this._localSet('users', u); return item; }
             default: return item;
         }
     }
@@ -297,31 +252,14 @@ class GitHubDB {
         switch (store) {
             case 'products': return await this.deleteProduct(id);
             case 'categories': return await this.deleteCategory(id);
-            case 'users': { 
-                this._localSet('users', (this._localGet('users') || []).filter(u => u.id !== id)); 
-                return true; 
-            }
+            case 'users': { this._localSet('users', (this._localGet('users') || []).filter(u => u.id !== id)); return true; }
             default: return true;
         }
     }
     
-    async getByIndex(store, field, val) { 
-        const items = await this.getAll(store); 
-        return items.filter(i => i[field] === val); 
-    }
-    
-    async count(store) { 
-        return (await this.getAll(store)).length; 
-    }
-    
-    async getOrdersByDateRange(start, end) { 
-        const orders = await this.getOrders(); 
-        return orders.filter(o => { 
-            const d = new Date(o.createdAt); 
-            return d >= new Date(start) && d <= new Date(end); 
-        }); 
-    }
-    
+    async getByIndex(store, field, val) { const items = await this.getAll(store); return items.filter(i => i[field] === val); }
+    async count(store) { return (await this.getAll(store)).length; }
+    async getOrdersByDateRange(start, end) { const orders = await this.getOrders(); return orders.filter(o => { const d = new Date(o.createdAt); return d >= new Date(start) && d <= new Date(end); }); }
     async clearStore(store) {
         switch (store) {
             case 'products': await this.saveProducts([]); break;
@@ -333,127 +271,59 @@ class GitHubDB {
     }
 
     // ==================== LOCAL ====================
-    _localSet(key, data) { 
-        try { 
-            localStorage.setItem('ara_' + key, JSON.stringify(data)); 
-        } catch (e) {} 
-    }
-    
-    _localGet(key) { 
-        try { 
-            const raw = localStorage.getItem('ara_' + key); 
-            return raw ? JSON.parse(raw) : null; 
-        } catch (e) { 
-            return null; 
-        } 
-    }
-    
+    _localSet(key, data) { try { localStorage.setItem('ara_' + key, JSON.stringify(data)); } catch (e) {} }
+    _localGet(key) { try { const r = localStorage.getItem('ara_' + key); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
     _getDefault(fileName) {
         if (fileName === 'products') return { products: [] };
         if (fileName === 'categories') return { categories: [] };
         if (fileName === 'orders') return { orders: [] };
-        if (fileName === 'settings') return { 
-            cafeName: 'ARA Coffee', 
-            currency: 'تومان', 
-            taxRate: 9, 
-            printerType: '58mm', 
-            theme: 'light' 
-        };
+        if (fileName === 'settings') return { cafeName: 'ARA Coffee', currency: 'تومان', taxRate: 9, theme: 'light' };
         return {};
     }
 
-    // ==================== TEST CONNECTION ====================
     async testConnection() {
-        const owner = this.OWNER;
-        const repo = this.REPO;
         const token = this._getToken();
-        
-        console.log('🔍 Testing...');
-        console.log('Owner:', owner);
-        console.log('Repo:', repo);
-        console.log('Token:', token ? token.substring(0, 12) + '...' : 'MISSING');
-        
-        if (!token) {
-            return { success: false, message: '❌ توکن را وارد کنید' };
-        }
-
+        if (!token) return { success: false, message: '❌ توکن وارد نشده' };
         try {
-            // تست ساده - چک کردن مخزن
-            const url = 'https://api.github.com/repos/' + owner + '/' + repo;
-            console.log('URL:', url);
-            
-            const response = await fetch(url, {
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            
-            console.log('Status:', response.status);
-            
-            if (response.ok) {
-                const data = await response.json();
-                return { 
-                    success: true, 
-                    repo: data.full_name,
-                    message: '✅ متصل به ' + data.full_name
-                };
+            const res = await fetch(`https://api.github.com/repos/${this.OWNER}/${this.REPO}`, { headers: this._getHeaders() });
+            if (res.ok) {
+                const d = await res.json();
+                return { success: true, repo: d.full_name, message: '✅ متصل به ' + d.full_name };
             }
-            
-            if (response.status === 401) {
-                return { success: false, message: '❌ توکن نامعتبر' };
-            }
-            
-            if (response.status === 404) {
-                return { success: false, message: '❌ مخزن یافت نشد: ' + owner + '/' + repo };
-            }
-            
-            return { success: false, message: '❌ خطای ' + response.status };
-            
-        } catch (error) {
-            return { success: false, message: '❌ ' + error.message };
+            if (res.status === 401) return { success: false, message: '❌ توکن نامعتبر' };
+            if (res.status === 404) return { success: false, message: '❌ مخزن یافت نشد' };
+            return { success: false, message: '❌ خطای ' + res.status };
+        } catch (e) {
+            return { success: false, message: '❌ ' + e.message };
         }
     }
 
-    clearCache() { 
-        this.cache = {}; 
-    }
+    clearCache() { this.cache = {}; }
 }
 
-// ==================== INSTANCE ====================
 const DB = new GitHubDB();
 
-// ==================== SettingsManager ====================
 const SettingsManager = {
     get(key, def) {
-        try {
-            const v = localStorage.getItem('ara_' + key);
-            if (v === null || v === undefined) return def !== undefined ? def : null;
-            try { return JSON.parse(v); } catch (e) { return v; }
-        } catch (e) { return def !== undefined ? def : null; }
+        try { const v = localStorage.getItem('ara_' + key); return v === null ? (def !== undefined ? def : null) : JSON.parse(v); } catch (e) { return def !== undefined ? def : null; }
     },
-    set(key, val) {
-        try { localStorage.setItem('ara_' + key, JSON.stringify(val)); } catch (e) {}
-    },
+    set(key, val) { try { localStorage.setItem('ara_' + key, JSON.stringify(val)); } catch (e) {} },
     getAll() {
         const s = {};
         for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i);
-            if (k && k.startsWith('ara_')) {
-                try { s[k.replace('ara_', '')] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
-            }
+            if (k?.startsWith('ara_')) try { s[k.replace('ara_', '')] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
         }
         return s;
     },
     remove(key) { localStorage.removeItem('ara_' + key); }
 };
 
-SettingsManager.setDefaults = function() {
-    if (this.get('cafeName') === null) this.set('cafeName', 'ARA Coffee');
-    if (this.get('currency') === null) this.set('currency', 'تومان');
-    if (this.get('taxRate') === null) this.set('taxRate', 9);
-    if (this.get('theme') === null) this.set('theme', 'light');
-};
-SettingsManager.setDefaults();
+['cafeName','currency','taxRate','theme'].forEach(k => {
+    if (SettingsManager.get(k) === null) {
+        const defaults = { cafeName: 'ARA Coffee', currency: 'تومان', taxRate: 9, theme: 'light' };
+        SettingsManager.set(k, defaults[k]);
+    }
+});
 
-console.log('✅ GitHubDB Ready - alikarami28/ARA-Coffee-POS');
+console.log('✅ GitHubDB Ready');
