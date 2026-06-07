@@ -1,5 +1,5 @@
-// app.js - Main Application Controller (Complete with Discount)
-// Version: 6.0
+// app.js - Main Application Controller (Complete)
+// Version: 7.0 - Full Responsive with Mobile Cart Toggle
 
 class ARAApp {
     constructor() {
@@ -71,13 +71,18 @@ class ARAApp {
         }
     }
 
-    // ==================== SIDEBAR ====================
+    // ==================== SIDEBAR NAVIGATION ====================
     initSideNavigation() {
         const menuToggle = document.getElementById('menu-toggle');
         const sideNav = document.getElementById('side-nav');
         const overlay = document.getElementById('side-nav-overlay');
         
-        if (!menuToggle || !sideNav) return;
+        if (!menuToggle || !sideNav) {
+            console.warn('⚠️ Menu elements not found');
+            return;
+        }
+
+        console.log('✅ Sidebar initialized');
 
         menuToggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -101,6 +106,15 @@ class ARAApp {
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && sideNav.classList.contains('open')) {
+                sideNav.classList.remove('open');
+                if (overlay) overlay.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (sideNav.classList.contains('open') && 
+                !sideNav.contains(e.target) && 
+                e.target !== menuToggle) {
                 sideNav.classList.remove('open');
                 if (overlay) overlay.classList.remove('active');
             }
@@ -142,6 +156,7 @@ class ARAApp {
                 let cats = [];
                 if (typeof DB !== 'undefined') {
                     cats = await DB.getCategories();
+                    console.log('📂 Categories from DB:', cats.length);
                 }
                 if (cats.length === 0) {
                     try {
@@ -153,8 +168,11 @@ class ARAApp {
                         if (response.ok) {
                             const data = await response.json();
                             cats = data.categories || [];
+                            console.log('📂 Categories from direct fetch:', cats.length);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.warn('Direct fetch failed:', e.message);
+                    }
                 }
                 
                 const container = document.getElementById('category-tabs');
@@ -175,6 +193,7 @@ class ARAApp {
                         filterProducts();
                     });
                 });
+                
             } catch (e) {
                 console.error('Error loading categories:', e);
             }
@@ -185,6 +204,7 @@ class ARAApp {
             try {
                 if (typeof DB !== 'undefined') {
                     allProducts = await DB.getProducts();
+                    console.log('📦 Products from DB:', allProducts.length);
                 }
                 if (allProducts.length === 0) {
                     try {
@@ -196,10 +216,12 @@ class ARAApp {
                         if (response.ok) {
                             const data = await response.json();
                             allProducts = data.products || [];
+                            console.log('📦 Products from direct fetch:', allProducts.length);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.warn('Direct fetch failed:', e.message);
+                    }
                 }
-                console.log('📦 Products loaded:', allProducts.length);
                 renderProducts(allProducts);
             } catch (e) {
                 console.error('Error loading products:', e);
@@ -239,7 +261,7 @@ class ARAApp {
             });
         };
 
-        // ========== FILTER ==========
+        // ========== FILTER PRODUCTS ==========
         const filterProducts = () => {
             let filtered = [...allProducts].filter(p => p.isActive !== false);
             if (activeCategoryId) filtered = filtered.filter(p => p.categoryId === activeCategoryId);
@@ -291,6 +313,9 @@ class ARAApp {
                     document.getElementById('tax-amount').textContent = UI.formatCurrency(taxAmount);
                     document.getElementById('discount-amount').textContent = hasDiscount ? '-' + UI.formatCurrency(discountAmount) : '۰ تومان';
                     document.getElementById('total-amount').textContent = UI.formatCurrency(finalAmount);
+
+                    // Update mobile cart toggle button
+                    updateCartToggleText();
                 }
             });
         }
@@ -306,6 +331,7 @@ class ARAApp {
             document.getElementById('discount-percent').value = '';
             document.getElementById('discount-amount-input').value = '';
             UI.showToast('info', 'سبد خرید خالی شد');
+            updateCartToggleText();
         });
         
         // ========== DISCOUNT HANDLERS ==========
@@ -336,7 +362,7 @@ class ARAApp {
             UI.showToast('info', 'تخفیف حذف شد');
         });
         
-        // Checkout
+        // Checkout button
         document.getElementById('checkout-btn')?.addEventListener('click', async () => {
             if (!Cart || Cart.getCartSummary().items.length === 0) {
                 UI.showToast('warning', 'سبد خرید خالی است');
@@ -347,18 +373,69 @@ class ARAApp {
                 const method = document.querySelector('input[name="payment-method"]:checked')?.value || 'Cash';
                 const order = await Cart.checkout(method);
                 
-                // Show receipt preview
                 if (typeof PrintService !== 'undefined') {
                     PrintService.previewReceipt(order);
                 }
                 
-                // Clear discount inputs
                 document.getElementById('discount-percent').value = '';
                 document.getElementById('discount-amount-input').value = '';
+                updateCartToggleText();
                 
                 UI.showToast('success', `✅ سفارش ${order.invoiceNumber} ثبت شد`);
             } catch (e) {
                 UI.showToast('error', '❌ ' + e.message);
+            }
+        });
+
+        // ========== MOBILE CART TOGGLE ==========
+        const cartSection = document.querySelector('.cart-section');
+        
+        // Create cart toggle button for mobile
+        const cartToggleBtn = document.createElement('button');
+        cartToggleBtn.className = 'cart-toggle-btn';
+        cartToggleBtn.textContent = '🛒 سبد خرید';
+        cartToggleBtn.style.display = 'none';
+        document.body.appendChild(cartToggleBtn);
+
+        const checkMobile = () => {
+            if (window.innerWidth <= 768) {
+                cartToggleBtn.style.display = 'block';
+            } else {
+                cartToggleBtn.style.display = 'none';
+                if (cartSection) cartSection.classList.remove('collapsed');
+            }
+        };
+
+        const updateCartToggleText = () => {
+            if (typeof Cart !== 'undefined' && window.innerWidth <= 768) {
+                const summary = Cart.getCartSummary();
+                if (summary.totalItems > 0) {
+                    cartToggleBtn.textContent = `🛒 سبد خرید (${summary.totalItems} قلم - ${UI.formatCurrency(summary.finalAmount)})`;
+                } else {
+                    cartToggleBtn.textContent = '🛒 سبد خرید';
+                }
+            }
+        };
+
+        checkMobile();
+        window.addEventListener('resize', () => {
+            checkMobile();
+            updateCartToggleText();
+        });
+
+        cartToggleBtn.addEventListener('click', () => {
+            if (cartSection) {
+                cartSection.classList.toggle('collapsed');
+                if (cartSection.classList.contains('collapsed')) {
+                    cartToggleBtn.textContent = '🛒 مشاهده سبد خرید';
+                    updateCartToggleText();
+                    if (Cart && Cart.getCartSummary().totalItems > 0) {
+                        cartToggleBtn.textContent = `🛒 سبد خرید (${Cart.getCartSummary().totalItems} قلم) - نمایش`;
+                    }
+                } else {
+                    cartToggleBtn.textContent = '🔽 بستن سبد خرید';
+                    cartSection.scrollIntoView({ behavior: 'smooth' });
+                }
             }
         });
 
@@ -370,8 +447,13 @@ class ARAApp {
     }
 }
 
-// ==================== START ====================
+// ==================== START APPLICATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM ready, data-page:', document.body.getAttribute('data-page'));
     window.ARA_App = new ARAApp();
 });
+
+// ==================== GLOBAL ACCESS ====================
+if (typeof window !== 'undefined') {
+    window.ARAApp = ARAApp;
+}
