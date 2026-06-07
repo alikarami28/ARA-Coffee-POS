@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2024-01-01T00:00:00Z",
+  "products": [
+    {
+      "id": "prod-1",
+      "name": "اسپرسو",
+      "categoryId": "cat-1",
+      "price": 35000,
+      "description": "اسپرسوی اصل ایتالیایی با عطر و طعم بی‌نظیر",
+      "image": "",
+      "isActive": true,
+      "displayOrder": 0,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "prod-2",
+      "name": "لاته",
+      "categoryId": "cat-1",
+      "price": 45000,
+      "description": "لاته با شیر تازه و فوم ابریشمی",
+      "image": "",
+      "isActive": true,
+      "displayOrder": 1,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "prod-3",
+      "name": "کاپوچینو",
+      "categoryId": "cat-1",
+      "price": 40000,
+      "description": "کاپوچینو کلاسیک با دارچین",
+      "image": "",
+      "isActive": true,
+      "displayOrder": 2,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ]
+}

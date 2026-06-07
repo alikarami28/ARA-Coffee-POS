@@ -1,0 +1,11 @@
+{
+  "cafeName": "ARA Coffee",
+  "address": "تهران، خیابان ولیعصر، نبش کوچه باغ",
+  "phone": "۰۲۱-۱۲۳۴۵۶۷۸",
+  "instagram": "ara_coffee",
+  "website": "https://aracoffee.ir",
+  "currency": "تومان",
+  "taxRate": 9,
+  "printerType": "58mm",
+  "theme": "light"
+}

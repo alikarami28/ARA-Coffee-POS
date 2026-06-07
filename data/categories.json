@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2024-01-01T00:00:00Z",
+  "categories": [
+    { "id": "cat-1", "name": "اسپرسو", "icon": "☕", "isDefault": true, "displayOrder": 0 },
+    { "id": "cat-2", "name": "قهوه گرم", "icon": "🫖", "isDefault": true, "displayOrder": 1 },
+    { "id": "cat-3", "name": "قهوه سرد", "icon": "🧊", "isDefault": true, "displayOrder": 2 },
+    { "id": "cat-4", "name": "چای", "icon": "🍵", "isDefault": true, "displayOrder": 3 },
+    { "id": "cat-5", "name": "مچا", "icon": "🍃", "isDefault": true, "displayOrder": 4 },
+    { "id": "cat-6", "name": "نوشیدنی سرد", "icon": "🥤", "isDefault": true, "displayOrder": 5 },
+    { "id": "cat-7", "name": "دسر", "icon": "🍰", "isDefault": true, "displayOrder": 6 },
+    { "id": "cat-8", "name": "شیرینی", "icon": "🥐", "isDefault": true, "displayOrder": 7 }
+  ]
+}
