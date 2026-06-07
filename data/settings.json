@@ -6,7 +6,7 @@
   "website": "",
   "currency": "تومان",
   "taxRate": 10,
-  "discountPercent": 0,
-  "printerType": "58mm",
+  "discountPercent": 10,
+  "printerType": "80mm",
   "theme": "light"
 }
