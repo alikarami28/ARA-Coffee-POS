@@ -1,4 +1,4 @@
-// print.js - Print Service (Complete)
+// print.js - Print Service with Motivational Quotes
 class PrintService {
     static async printReceipt(order) {
         const cafeName = this._get('cafeName', 'ARA Coffee');
@@ -10,9 +10,13 @@ class PrintService {
         this._print(html);
     }
 
-    static _get(key, def) { try { const v = localStorage.getItem('ara_' + key); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
+    static _get(key, def) {
+        try { const v = localStorage.getItem('ara_' + key); return v ? JSON.parse(v) : def; } catch (e) { return def; }
+    }
     
-    static _fmt(num) { try { return new Intl.NumberFormat('fa-IR').format(Math.round(num || 0)); } catch (e) { return Math.round(num || 0).toLocaleString(); } }
+    static _fmt(num) {
+        try { return new Intl.NumberFormat('fa-IR').format(Math.round(num || 0)); } catch (e) { return Math.round(num || 0).toLocaleString(); }
+    }
 
     static _generateHTML(order, cafeName, address, phone, currency, printerType) {
         const date = new Date(order.createdAt).toLocaleDateString('fa-IR');
@@ -21,6 +25,7 @@ class PrintService {
         const fs = printerType === '58mm' ? '10px' : '12px';
         const p = printerType === '58mm' ? '3mm' : '5mm';
         const hasDiscount = order.discountAmount > 0;
+        const quote = typeof getRandomQuote === 'function' ? getRandomQuote() : '☕ قهوه‌ات را بنوش، زندگی کن.';
 
         const itemsHTML = order.items.map(item => {
             const showDisc = item.discountedUnitPrice < item.unitPrice;
@@ -38,7 +43,8 @@ body{font-family:'Courier New',Tahoma,monospace;width:${w};padding:${p};font-siz
 .c{text-align:center;}.b{font-weight:bold;}.d{border-top:1px dashed #000;margin:3mm 0;}
 table{width:100%;border-collapse:collapse;margin:3mm 0;}th{border-bottom:1px solid #000;padding:1mm 0;}td{padding:1mm 0;}
 .tr{font-size:1.2em;font-weight:bold;}.f{margin-top:5mm;text-align:center;font-style:italic;}
-.disc{color:#e74c3c;}</style></head><body>
+.disc{color:#e74c3c;}.quote{font-style:italic;color:#8B4513;font-size:0.9em;margin-top:4mm;text-align:center;line-height:1.6;}
+</style></head><body>
 <div class="c"><h2 style="margin:0;font-size:1.3em;">${cafeName} ☕</h2>
 ${address?`<p style="margin:1mm 0;font-size:0.9em;">${address}</p>`:''}
 ${phone?`<p style="margin:1mm 0;font-size:0.9em;">📞 ${phone}</p>`:''}</div>
@@ -58,6 +64,7 @@ ${hasDiscount?`<tr class="disc"><td>🏷️ تخفیف (${order.discountPercent>
 <div class="c"><p>💳 روش پرداخت: ${order.paymentMethod==='Card'?'کارتخوان':'نقدی'}</p></div>
 <div class="d"></div>
 <div class="f"><p>🌹 از حضور شما سپاسگزاریم</p><p>${cafeName}</p><p>${date}</p></div>
+<div class="quote"><p>${quote}</p></div>
 </body></html>`;
     }
 
@@ -81,6 +88,8 @@ ${hasDiscount?`<tr class="disc"><td>🏷️ تخفیف (${order.discountPercent>
         const address = this._get('address', '');
         const phone = this._get('phone', '');
         const currency = this._get('currency', 'تومان');
+        const quote = typeof getRandomQuote === 'function' ? getRandomQuote() : '☕ قهوه‌ات را بنوش، زندگی کن.';
+        
         const existingModal = document.getElementById('receipt-preview-modal');
         if (existingModal) existingModal.remove();
 
@@ -130,6 +139,9 @@ ${hasDiscount?`<tr class="disc"><td>🏷️ تخفیف (${order.discountPercent>
             <hr style="border:1px dashed #ddd;">
             <p style="text-align:center;font-size:0.9rem;">💳 روش پرداخت: ${order.paymentMethod==='Card'?'کارتخوان':'نقدی'}</p>
             <p style="text-align:center;color:#999;font-size:0.85rem;">🌹 از حضور شما سپاسگزاریم</p>
+            <div style="text-align:center;color:#8B4513;font-size:0.9rem;font-style:italic;margin:12px 0;padding:12px;background:rgba(139,69,19,0.05);border-radius:8px;line-height:1.8;">
+                <p>${quote}</p>
+            </div>
             <div style="display:flex;gap:8px;margin-top:16px;">
                 <button id="prev-print" style="flex:1;padding:12px;background:#8B4513;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:bold;">🖨️ چاپ فاکتور</button>
                 <button id="prev-cancel" style="flex:1;padding:12px;background:#888;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:1rem;">بستن</button>
