@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:35:22.010Z",
+  "lastUpdated": "2026-06-08T08:45:58.376Z",
   "products": [
     {
       "id": "prod-1",
@@ -20,11 +20,11 @@
       "categoryId": "cat-default-0",
       "price": 95000,
       "description": "دو شات اسپرسو با طعمی عمیق و انرژی بیشتر",
-      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780904403970-ngos6.png",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908353803-c2edz.jpg",
       "isActive": true,
       "displayOrder": 1,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T07:40:10.713Z"
+      "updatedAt": "2026-06-08T08:45:58.375Z"
     },
     {
       "id": "prod-3",
