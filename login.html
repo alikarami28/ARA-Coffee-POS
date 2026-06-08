@@ -60,6 +60,7 @@
         .btn-login:hover { background: linear-gradient(135deg, #6B3410, #8B4513); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4); }
         .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
         .login-error { color: #e74c3c; font-size: 0.85rem; margin-top: 12px; display: none; text-align: center; padding: 8px; background: rgba(231, 76, 60, 0.08); border-radius: 8px; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
         @media (max-width: 480px) { .login-card { padding: 30px 20px; border-radius: 16px; } .login-logo { width: 60px; height: 60px; font-size: 2rem; } .login-title { font-size: 1.5rem; } .form-input { padding: 10px 14px; } .btn-login { padding: 12px; font-size: 1rem; } }
     </style>
 </head>
@@ -93,83 +94,213 @@
 
     <script>
         // ==========================================
-        // ULTRA SIMPLE LOGIN - NO HASH - JUST COMPARE
+        // LOGIN SYSTEM WITH SHA-256 HASH + AUTO UPGRADE
         // ==========================================
         
-        (function() {
-            // Check if already logged in
-            const session = localStorage.getItem('ara_session');
-            if (session) {
+        (async function() {
+            
+            // ========== HASH FUNCTION ==========
+            async function hashPassword(password) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password + 'ARA_Coffee_Salt_2026');
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+            
+            // ========== GET USERS ==========
+            function getUsers() {
                 try {
-                    const data = JSON.parse(session);
-                    if (new Date() < new Date(data.expiresAt)) {
-                        window.location.href = '/index.html';
-                        return;
-                    }
-                } catch(e) {}
+                    return JSON.parse(localStorage.getItem('ara_users') || '[]');
+                } catch(e) {
+                    return [];
+                }
             }
             
-            // Create default user if not exists
-            let users = [];
-            try {
-                users = JSON.parse(localStorage.getItem('ara_users') || '[]');
-            } catch(e) {
-                users = [];
-            }
-            
-            if (users.length === 0) {
-                users = [{
-                    id: 'admin-1',
-                    username: 'admin',
-                    password: 'admin123',
-                    role: 'admin',
-                    isActive: true
-                }];
+            // ========== SAVE USERS ==========
+            function saveUsers(users) {
                 localStorage.setItem('ara_users', JSON.stringify(users));
             }
             
-            // Handle form submit
-            document.getElementById('login-form').addEventListener('submit', function(e) {
+            // ========== CHECK SESSION ==========
+            function isLoggedIn() {
+                try {
+                    const s = localStorage.getItem('ara_session');
+                    if (!s) return false;
+                    const d = JSON.parse(s);
+                    return new Date() < new Date(d.expiresAt);
+                } catch(e) { return false; }
+            }
+            
+            // ========== AUTO UPGRADE OLD USERS ==========
+            async function upgradeUsersIfNeeded() {
+                let users = getUsers();
+                let needsUpgrade = false;
+                
+                // Check if any user has plain password (no hash)
+                for (let user of users) {
+                    if (user.password && !user.passwordHash) {
+                        // Convert plain password to hash
+                        user.passwordHash = await hashPassword(user.password);
+                        delete user.password; // Remove plain password
+                        needsUpgrade = true;
+                        console.log('🔒 Upgraded user:', user.username);
+                    }
+                }
+                
+                if (needsUpgrade) {
+                    saveUsers(users);
+                    console.log('✅ All users upgraded to SHA-256 + Salt');
+                }
+            }
+            
+            // ========== INIT ==========
+            async function init() {
+                // Check session
+                if (isLoggedIn()) {
+                    window.location.href = '/index.html';
+                    return;
+                }
+                
+                // Upgrade old users
+                await upgradeUsersIfNeeded();
+                
+                // Create default admin if no users
+                let users = getUsers();
+                if (users.length === 0) {
+                    console.log('🔧 Creating default admin...');
+                    const hash = await hashPassword('admin123');
+                    users = [{
+                        id: 'user-admin-default',
+                        username: 'admin',
+                        passwordHash: hash,
+                        role: 'admin',
+                        isActive: true,
+                        createdAt: new Date().toISOString()
+                    }];
+                    saveUsers(users);
+                    console.log('✅ Default admin created: admin / admin123');
+                    console.log('🔒 Hash:', hash);
+                }
+            }
+            
+            // ========== HANDLE LOGIN ==========
+            async function handleLogin(e) {
                 e.preventDefault();
                 
                 const username = document.getElementById('username').value.trim();
                 const password = document.getElementById('password').value;
                 const errorEl = document.getElementById('login-error');
+                const btn = document.querySelector('.btn-login');
                 
                 errorEl.style.display = 'none';
                 
-                if (!username || !password) {
-                    errorEl.textContent = 'لطفاً نام کاربری و رمز عبور را وارد کنید';
+                // Validate
+                if (!username) {
+                    errorEl.textContent = 'لطفاً نام کاربری را وارد کنید';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                if (!password) {
+                    errorEl.textContent = 'لطفاً رمز عبور را وارد کنید';
                     errorEl.style.display = 'block';
                     return;
                 }
                 
-                // RELOAD users from localStorage
-                let currentUsers = [];
+                // Loading
+                btn.textContent = '⏳ در حال ورود...';
+                btn.disabled = true;
+                
                 try {
-                    currentUsers = JSON.parse(localStorage.getItem('ara_users') || '[]');
-                } catch(e) {}
-                
-                // Find user - EXACT MATCH (no hash!)
-                const user = currentUsers.find(function(u) {
-                    return u.username === username && u.password === password && u.isActive !== false;
-                });
-                
-                if (user) {
+                    const users = getUsers();
+                    
+                    // Find user
+                    const user = users.find(u => 
+                        u.username.toLowerCase() === username.toLowerCase() && 
+                        u.isActive !== false
+                    );
+                    
+                    if (!user) {
+                        throw new Error('کاربر یافت نشد');
+                    }
+                    
+                    // Check password
+                    let isValid = false;
+                    
+                    if (user.passwordHash) {
+                        // Hashed password - compare hashes
+                        const inputHash = await hashPassword(password);
+                        isValid = (inputHash === user.passwordHash);
+                        console.log('🔒 Hash comparison:', isValid);
+                    } else if (user.password) {
+                        // Plain password (shouldn't happen after upgrade)
+                        isValid = (password === user.password);
+                        console.log('⚠️ Plain text comparison (should upgrade)');
+                        
+                        // Upgrade this user
+                        user.passwordHash = await hashPassword(password);
+                        delete user.password;
+                        saveUsers(users);
+                    }
+                    
+                    if (!isValid) {
+                        // Add delay to prevent brute force
+                        await new Promise(r => setTimeout(r, 1500));
+                        throw new Error('رمز عبور اشتباه');
+                    }
+                    
                     // SUCCESS!
+                    console.log('✅ Login successful:', username);
+                    
+                    // Create session (8 hours)
                     localStorage.setItem('ara_session', JSON.stringify({
                         userId: user.id,
                         username: user.username,
                         role: user.role,
-                        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+                        loginTime: new Date().toISOString(),
+                        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
                     }));
                     
-                    window.location.href = '/index.html';
-                } else {
+                    btn.textContent = '✅ ورود موفق!';
+                    setTimeout(() => {
+                        window.location.href = '/index.html';
+                    }, 300);
+                    
+                } catch(err) {
+                    console.error('Login failed:', err.message);
                     errorEl.textContent = '❌ نام کاربری یا رمز عبور اشتباه است';
                     errorEl.style.display = 'block';
+                    btn.textContent = 'ورود به سیستم';
+                    btn.disabled = false;
+                    
+                    // Shake animation
+                    const form = document.getElementById('login-form');
+                    form.style.animation = 'none';
+                    form.offsetHeight;
+                    form.style.animation = 'shake 0.5s ease';
+                }
+            }
+            
+            // ========== START ==========
+            await init();
+            
+            // Form submit
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            
+            // Enter key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('login-form').dispatchEvent(new Event('submit'));
                 }
             });
+            
+            console.log('🔒 Secure login system ready');
+            console.log('   - SHA-256 hashing');
+            console.log('   - Salt: ARA_Coffee_Salt_2026');
+            console.log('   - Auto-upgrade old passwords');
+            console.log('   - Brute force protection');
+            console.log('   - 8 hour session');
+            
         })();
     </script>
 </body>
