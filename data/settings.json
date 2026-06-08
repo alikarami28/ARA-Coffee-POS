@@ -17,6 +17,14 @@
       "role": "admin",
       "isActive": true,
       "createdAt": "2026-06-08T00:00:00Z"
+    },
+    {
+      "id": "user-1780948577474",
+      "username": "Alikarami28",
+      "passwordHash": "61f30c44f942c7c5b4c997241944dd2aa0ea9715f8fa1df9047fc59439cd49e0",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2026-06-08T19:56:17.474Z"
     }
   ]
 }
