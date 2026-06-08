@@ -5,21 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#8B4513">
     <title>ARA Coffee ☕ - ورود</title>
-    <!-- Favicon -->
-<link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
-<link rel="shortcut icon" type="image/x-icon" href="/assets/images/favicon.ico">
-    <link rel="icon" type="image/png" href="/assets/images/icon-192x192.png">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/images/favicon.ico">
     <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
     
     <style>
-        /* ========== RESET ========== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* ========== BODY ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Segoe UI', 'Inter', Tahoma, sans-serif;
             min-height: 100vh;
@@ -31,13 +23,11 @@
             direction: rtl;
         }
 
-        /* ========== LOGIN WRAPPER ========== */
         .login-wrapper {
             width: 100%;
             max-width: 420px;
         }
 
-        /* ========== LOGIN CARD ========== */
         .login-card {
             background: rgba(255, 255, 255, 0.97);
             border-radius: 20px;
@@ -46,7 +36,6 @@
             text-align: center;
         }
 
-        /* ========== LOGO ========== */
         .login-logo {
             width: 80px;
             height: 80px;
@@ -61,7 +50,6 @@
             box-shadow: 0 8px 20px rgba(139, 69, 19, 0.3);
         }
 
-        /* ========== TITLE ========== */
         .login-title {
             font-size: 1.8rem;
             font-weight: 700;
@@ -75,7 +63,6 @@
             margin-bottom: 30px;
         }
 
-        /* ========== FORM ========== */
         .form-group {
             margin-bottom: 18px;
             text-align: right;
@@ -112,7 +99,6 @@
             color: #b8a99a;
         }
 
-        /* ========== BUTTON ========== */
         .btn-login {
             width: 100%;
             padding: 14px;
@@ -126,7 +112,6 @@
             font-family: inherit;
             transition: all 0.3s ease;
             margin-top: 8px;
-            letter-spacing: 1px;
         }
 
         .btn-login:hover {
@@ -135,11 +120,12 @@
             box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
         }
 
-        .btn-login:active {
-            transform: translateY(0);
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        /* ========== ERROR ========== */
         .login-error {
             color: #e74c3c;
             font-size: 0.85rem;
@@ -151,38 +137,30 @@
             border-radius: 8px;
         }
 
-        .login-error.show {
-            display: block;
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
         }
 
-        /* ========== FOOTER ========== */
-        .login-footer {
-            margin-top: 20px;
-            color: #b8a99a;
-            font-size: 0.8rem;
-        }
-
-        /* ========== RESPONSIVE ========== */
         @media (max-width: 480px) {
             .login-card {
                 padding: 30px 20px;
                 border-radius: 16px;
             }
-            
             .login-logo {
                 width: 60px;
                 height: 60px;
                 font-size: 2rem;
             }
-            
             .login-title {
                 font-size: 1.5rem;
             }
-            
             .form-input {
                 padding: 10px 14px;
             }
-            
             .btn-login {
                 padding: 12px;
                 font-size: 1rem;
@@ -194,285 +172,32 @@
 
     <div class="login-wrapper">
         <div class="login-card">
-            <!-- Logo -->
             <div class="login-logo">☕</div>
-            
-            <!-- Title -->
             <h1 class="login-title">ARA Coffee</h1>
             <p class="login-subtitle">سیستم صندوق فروشگاهی و حسابداری</p>
             
-            <!-- Form -->
             <form id="login-form" autocomplete="off">
                 <div class="form-group">
                     <label for="username">👤 نام کاربری</label>
-                    <input 
-                        type="text" 
-                        id="username" 
-                        class="form-input" 
-                        placeholder="نام کاربری خود را وارد کنید" 
-                        required 
-                        autocomplete="off"
-                        dir="rtl"
-                    >
+                    <input type="text" id="username" class="form-input" placeholder="نام کاربری خود را وارد کنید" required autocomplete="off" dir="rtl">
                 </div>
                 
                 <div class="form-group">
                     <label for="password">🔒 رمز عبور</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        class="form-input" 
-                        placeholder="رمز عبور خود را وارد کنید" 
-                        required 
-                        autocomplete="off"
-                        dir="rtl"
-                    >
+                    <input type="password" id="password" class="form-input" placeholder="رمز عبور خود را وارد کنید" required autocomplete="off" dir="rtl">
                 </div>
                 
-                <button type="submit" class="btn-login">
-                    ورود به سیستم
-                </button>
+                <button type="submit" class="btn-login">ورود به سیستم</button>
                 
                 <p class="login-error" id="login-error"></p>
             </form>
-            
-            <!-- Footer -->
-            <p class="login-footer">
-                🔑 نام کاربری: <strong>admin</strong> | رمز: <strong>admin123</strong>
-            </p>
         </div>
     </div>
 
-    <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <!-- ==================== SCRIPTS ==================== -->
-    <script>
-        // ========== SIMPLE AUTH SYSTEM ==========
-        (function() {
-            'use strict';
-            
-            // Check if already logged in
-            const session = localStorage.getItem('ara_session');
-            if (session) {
-                try {
-                    const data = JSON.parse(session);
-                    const expires = new Date(data.expiresAt);
-                    if (new Date() < expires) {
-                        // Session valid, redirect to POS
-                        window.location.href = '/index.html';
-                        return;
-                    }
-                } catch (e) {
-                    localStorage.removeItem('ara_session');
-                }
-            }
-            
-            // Create default admin if not exists
-            initDefaultAdmin();
-            
-            // Handle form submit
-            document.getElementById('login-form').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await handleLogin();
-            });
-            
-            // Handle Enter key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && document.activeElement.tagName === 'INPUT') {
-                    const form = document.getElementById('login-form');
-                    if (form) {
-                        e.preventDefault();
-                        form.dispatchEvent(new Event('submit'));
-                    }
-                }
-            });
-            
-        })();
-        
-        // ========== INIT DEFAULT ADMIN ==========
-        async function initDefaultAdmin() {
-            try {
-                // Check if users exist in localStorage
-                let users = [];
-                const storedUsers = localStorage.getItem('ara_users');
-                
-                if (storedUsers) {
-                    try {
-                        users = JSON.parse(storedUsers);
-                    } catch (e) {
-                        users = [];
-                    }
-                }
-                
-                // If no users, create default admin
-                if (users.length === 0) {
-                    const hashedPassword = await hashPassword('admin123');
-                    
-                    users = [{
-                        id: 'admin-default-001',
-                        username: 'admin',
-                        passwordHash: hashedPassword,
-                        role: 'admin',
-                        isActive: true,
-                        createdAt: new Date().toISOString()
-                    }];
-                    
-                    localStorage.setItem('ara_users', JSON.stringify(users));
-                    console.log('✅ Default admin created: admin / admin123');
-                }
-            } catch (error) {
-                console.error('Error init admin:', error);
-            }
-        }
-        
-        // ========== HANDLE LOGIN ==========
-        async function handleLogin() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const errorEl = document.getElementById('login-error');
-            
-            // Hide previous error
-            errorEl.classList.remove('show');
-            errorEl.textContent = '';
-            
-            // Validate
-            if (!username) {
-                showError('لطفاً نام کاربری را وارد کنید');
-                return;
-            }
-            
-            if (!password) {
-                showError('لطفاً رمز عبور را وارد کنید');
-                return;
-            }
-            
-            try {
-                // Get users
-                const storedUsers = localStorage.getItem('ara_users');
-                const users = storedUsers ? JSON.parse(storedUsers) : [];
-                
-                // Find user
-                const user = users.find(u => u.username === username && u.isActive);
-                
-                if (!user) {
-                    showError('❌ نام کاربری یا رمز عبور اشتباه است');
-                    return;
-                }
-                
-                // Hash password and compare
-                const hashedPassword = await hashPassword(password);
-                
-                if (hashedPassword !== user.passwordHash) {
-                    showError('❌ نام کاربری یا رمز عبور اشتباه است');
-                    return;
-                }
-                
-                // Login successful
-                const sessionData = {
-                    userId: user.id,
-                    username: user.username,
-                    role: user.role,
-                    loginTime: new Date().toISOString(),
-                    expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-                };
-                
-                localStorage.setItem('ara_session', JSON.stringify(sessionData));
-                
-                console.log('✅ Login successful for:', username);
-                
-                // Show success and redirect
-                showToast('success', '✅ ورود موفق! در حال انتقال...');
-                
-                setTimeout(() => {
-                    window.location.href = '/index.html';
-                }, 500);
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                showError('❌ خطا در ورود. دوباره تلاش کنید');
-            }
-        }
-        
-        // ========== HASH PASSWORD ==========
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-        
-        // ========== SHOW ERROR ==========
-        function showError(message) {
-            const errorEl = document.getElementById('login-error');
-            errorEl.textContent = message;
-            errorEl.classList.add('show');
-            
-            // Shake animation
-            errorEl.style.animation = 'none';
-            errorEl.offsetHeight;
-            errorEl.style.animation = 'shake 0.5s ease';
-        }
-        
-        // ========== TOAST ==========
-        function showToast(type, message) {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-            
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                padding: 12px 24px;
-                border-radius: 10px;
-                color: white;
-                font-weight: 500;
-                text-align: center;
-                animation: slideUp 0.3s ease;
-                margin-bottom: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                font-family: inherit;
-            `;
-            
-            if (type === 'success') {
-                toast.style.background = '#4CAF50';
-            } else if (type === 'error') {
-                toast.style.background = '#f44336';
-            } else {
-                toast.style.background = '#2196F3';
-            }
-            
-            toast.textContent = message;
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideDown 0.3s ease forwards';
-                setTimeout(() => {
-                    if (toast.parentNode) toast.remove();
-                }, 300);
-            }, 3000);
-        }
-    </script>
-    
-    <style>
-        /* Shake animation */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-8px); }
-            40% { transform: translateX(8px); }
-            60% { transform: translateX(-6px); }
-            80% { transform: translateX(6px); }
-        }
-        
-        /* Toast animations */
-        @keyframes slideUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        @keyframes slideDown {
-            from { transform: translateY(0); opacity: 1; }
-            to { transform: translateY(100px); opacity: 0; }
-        }
-    </style>
+    <script src="/js/github-db.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
