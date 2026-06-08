@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:50:42.935Z",
+  "lastUpdated": "2026-06-08T08:51:13.859Z",
   "products": [
     {
       "id": "prod-1",
@@ -116,11 +116,11 @@
       "categoryId": "cat-default-1",
       "price": 205000,
       "description": "اسپرسو با شیر و شکلات سرد، شیرین و خنک",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908671217-qxj6k.jpg",
       "isActive": true,
       "displayOrder": 9,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:51:13.858Z"
     },
     {
       "id": "prod-11",
