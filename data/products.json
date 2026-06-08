@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:47:30.126Z",
+  "lastUpdated": "2026-06-08T08:48:00.309Z",
   "products": [
     {
       "id": "prod-1",
@@ -80,11 +80,11 @@
       "categoryId": "cat-default-0",
       "price": 195000,
       "description": "لاته با سس کارامل، شیرین و خوش‌عطر",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908477426-gfobi.jpg",
       "isActive": true,
       "displayOrder": 6,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:48:00.309Z"
     },
     {
       "id": "prod-8",
