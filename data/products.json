@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T07:14:53.761Z",
+  "lastUpdated": "2026-06-08T07:38:53.272Z",
   "products": [
     {
       "id": "prod-1",
@@ -8,11 +8,11 @@
       "categoryId": "cat-default-0",
       "price": 85000,
       "description": "شات خالص قهوه با طعمی قوی و عطر غلیظ",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780904326634-jszgr.png",
       "isActive": true,
       "displayOrder": 0,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T07:38:53.271Z"
     },
     {
       "id": "prod-2",
