@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:53:52.999Z",
+  "lastUpdated": "2026-06-08T08:54:12.952Z",
   "products": [
     {
       "id": "prod-1",
@@ -176,11 +176,11 @@
       "categoryId": "cat-default-2",
       "price": 85000,
       "description": "چای سبک با طعمی ملایم و خواص آنتی‌اکسیدانی",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908850274-dqcx4.jpg",
       "isActive": true,
       "displayOrder": 14,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:54:12.952Z"
     },
     {
       "id": "prod-16",
