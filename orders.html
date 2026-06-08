@@ -4,35 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#8B4513">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="description" content="تاریخچه سفارشات و فاکتورهای ARA Coffee">
+    <meta name="robots" content="noindex, nofollow">
     <title>ARA Coffee ☕ - تاریخچه سفارشات</title>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/orders.css">
-    <link rel="icon" type="image/png" href="/assets/images/icon-192x192.png">
-    <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
-<!-- Favicon -->
-<link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
-<link rel="shortcut icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="./assets/images/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="./assets/images/favicon.ico">
+    <link rel="apple-touch-icon" href="./assets/images/icon-192x192.png">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/orders.css">
 </head>
 <body data-page="orders">
     <div class="side-nav-overlay" id="side-nav-overlay"></div>
     <div class="app-container">
-        <header class="app-header">
+        <header class="app-header" role="banner">
             <div class="header-left">
-                <button class="icon-btn" id="menu-toggle" aria-label="منو" title="منو">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
-                </button>
-                <div class="logo-section">
-                    <img src="/assets/images/logo-placeholder.png" alt="ARA Coffee" class="logo-img"
-                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><rect fill=%22%238B4513%22 width=%2240%22 height=%2240%22 rx=%2220%22/><text fill=%22white%22 x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2220%22>☕</text></svg>'">
-                    <h1 class="cafe-name">ARA Coffee</h1>
-                </div>
+                <button class="icon-btn" id="menu-toggle" aria-label="منوی کناری" title="منو"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg></button>
+                <div class="logo-section"><img src="./assets/images/logo-placeholder.png" alt="ARA Coffee" class="logo-img" width="40" height="40" onerror="this.style.display='none'"><h1 class="cafe-name">ARA Coffee</h1></div>
             </div>
-            <div class="header-center"><span style="font-weight:600;font-size:1.1rem;">📋 تاریخچه سفارشات</span></div>
+            <div class="header-center"><span style="font-weight:600;font-size:1.1rem">📋 تاریخچه سفارشات</span></div>
             <div class="header-right">
-                <button class="theme-toggle" id="theme-toggle" title="تغییر تم" type="button"><span class="theme-icon">🌙</span></button>
-                <div class="user-section"><span class="user-name" id="current-user-display">کاربر</span><div class="user-avatar" id="user-avatar">A</div></div>
+                <button class="theme-toggle" id="theme-toggle" title="تغییر تم" type="button" aria-label="تغییر تم"><span class="theme-icon">🌙</span></button>
+                <div class="user-section"><span class="user-name" id="current-user-display">کاربر</span><div class="user-avatar" id="user-avatar" aria-label="آواتار کاربر">A</div></div>
             </div>
         </header>
         <main class="orders-container">
@@ -42,38 +34,34 @@
                 <div class="stat-card"><h3>میانگین فاکتور</h3><p class="stat-value" id="stat-avg">-</p></div>
             </div>
             <div class="filter-row">
-                <input type="date" id="filter-start" class="filter-input"><span>تا</span>
-                <input type="date" id="filter-end" class="filter-input">
-                <input type="text" id="filter-search" class="filter-input" placeholder="🔍 جستجوی فاکتور...">
+                <input type="date" id="filter-start" class="filter-input" title="از تاریخ"><span>تا</span>
+                <input type="date" id="filter-end" class="filter-input" title="تا تاریخ">
+                <input type="text" id="filter-search" class="filter-input" placeholder="🔍 جستجوی فاکتور..." aria-label="جستجوی فاکتور">
                 <button class="btn-primary" id="btn-filter">اعمال</button>
                 <button class="btn-secondary" id="btn-clear">پاک کردن</button>
             </div>
             <div class="orders-list" id="orders-list"></div>
         </main>
-        <nav class="side-nav" id="side-nav">
-            <div class="nav-header">
-                <img src="/assets/images/logo-placeholder.png" alt="ARA Coffee" class="nav-logo"
-                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22><rect fill=%22%238B4513%22 width=%2280%22 height=%2280%22 rx=%2240%22/><text fill=%22white%22 x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2240%22>☕</text></svg>'">
-                <h3>ARA Coffee ☕</h3><p class="nav-subtitle">سیستم مدیریت کافه</p>
-            </div>
+        <nav class="side-nav" id="side-nav" aria-label="منوی اصلی">
+            <div class="nav-header"><img src="./assets/images/logo-placeholder.png" alt="ARA Coffee" class="nav-logo" width="80" height="80" onerror="this.style.display='none'"><h3>ARA Coffee ☕</h3><p class="nav-subtitle">سیستم مدیریت کافه</p></div>
             <ul class="nav-links">
-                <li><a href="/index.html" class="nav-link"><span>🛒</span> صندوق فروش</a></li>
-                <li><a href="/orders.html" class="nav-link active"><span>📋</span> تاریخچه سفارشات</a></li>
-                <li><a href="/admin.html" class="nav-link"><span>⚙️</span> مدیریت محصولات</a></li>
-                <li><a href="/reports.html" class="nav-link"><span>📊</span> گزارشات</a></li>
-                <li><a href="/settings.html" class="nav-link"><span>🔧</span> تنظیمات</a></li>
+                <li><a href="./index.html" class="nav-link"><span>🛒</span> صندوق فروش</a></li>
+                <li><a href="./orders.html" class="nav-link active"><span>📋</span> تاریخچه سفارشات</a></li>
+                <li><a href="./admin.html" class="nav-link"><span>⚙️</span> مدیریت محصولات</a></li>
+                <li><a href="./reports.html" class="nav-link"><span>📊</span> گزارشات</a></li>
+                <li><a href="./settings.html" class="nav-link"><span>🔧</span> تنظیمات</a></li>
+                <li><a href="./menu.html" class="nav-link" target="_blank"><span>🍽️</span> منوی کافه</a></li>
             </ul>
             <div class="nav-footer"><p class="version">نسخه 1.0.0</p><button class="btn-logout" id="logout-btn">🚪 خروج</button></div>
         </nav>
     </div>
-    <div class="toast-container" id="toast-container"></div>
-   <script src="/js/motivational-quotes.js"></script>
-    <script src="/js/github-db.js"></script> 
-    <script src="/js/models.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/ui.js"></script>
-    <script src="/js/print.js"></script>
-    <script src="/js/orders.js"></script>
-    <script src="/js/app.js"></script>
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+    <script src="./js/github-db.js"></script>
+    <script src="./js/models.js"></script>
+    <script src="./js/auth.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/print.js"></script>
+    <script src="./js/orders.js"></script>
+    <script src="./js/app.js"></script>
 </body>
 </html>

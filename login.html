@@ -4,304 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#8B4513">
-    <title>ARA Coffee ☕ - ورود</title>
-    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="/assets/images/favicon.ico">
-    <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
-    
+    <meta name="description" content="ورود به سیستم مدیریت ARA Coffee - پنل مدیریت کافه">
+    <meta name="robots" content="noindex, nofollow">
+    <title>ARA Coffee ☕ - ورود به سیستم</title>
+    <link rel="icon" type="image/x-icon" href="./assets/images/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="./assets/images/favicon.ico">
+    <link rel="apple-touch-icon" href="./assets/images/icon-192x192.png">
+    <link rel="stylesheet" href="./css/style.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', 'Inter', Tahoma, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #2c1a10 0%, #4a3728 40%, #5D4037 70%, #3E2723 100%);
-            padding: 20px;
-            direction: rtl;
-        }
-        .login-wrapper { width: 100%; max-width: 420px; }
-        .login-card {
-            background: rgba(255, 255, 255, 0.97);
-            border-radius: 20px;
-            padding: 40px 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            text-align: center;
-        }
-        .login-logo {
-            width: 80px; height: 80px;
-            background: linear-gradient(135deg, #8B4513, #D2691E);
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2.5rem; color: white;
-            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.3);
-        }
-        .login-title { font-size: 1.8rem; font-weight: 700; color: #3E2723; margin-bottom: 6px; }
-        .login-subtitle { color: #8B7355; font-size: 0.9rem; margin-bottom: 30px; }
-        .form-group { margin-bottom: 18px; text-align: right; }
-        .form-group label { display: block; margin-bottom: 6px; color: #3E2723; font-weight: 600; font-size: 0.9rem; }
-        .form-input {
-            width: 100%; padding: 12px 16px;
-            border: 2px solid #e0d5c8; border-radius: 12px;
-            font-size: 1rem; font-family: inherit;
-            transition: all 0.3s ease; background: #faf8f5;
-            color: #3E2723; outline: none;
-        }
-        .form-input:focus { border-color: #8B4513; background: #fff; box-shadow: 0 0 0 4px rgba(139, 69, 19, 0.1); }
-        .btn-login {
-            width: 100%; padding: 14px;
-            background: linear-gradient(135deg, #8B4513, #A0522D);
-            color: white; border: none; border-radius: 12px;
-            font-size: 1.1rem; font-weight: 700; cursor: pointer;
-            font-family: inherit; transition: all 0.3s ease; margin-top: 8px;
-        }
-        .btn-login:hover { background: linear-gradient(135deg, #6B3410, #8B4513); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4); }
-        .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
-        .login-error { color: #e74c3c; font-size: 0.85rem; margin-top: 12px; display: none; text-align: center; padding: 8px; background: rgba(231, 76, 60, 0.08); border-radius: 8px; }
-        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
-        @media (max-width: 480px) { .login-card { padding: 30px 20px; border-radius: 16px; } .login-logo { width: 60px; height: 60px; font-size: 2rem; } .login-title { font-size: 1.5rem; } .form-input { padding: 10px 14px; } .btn-login { padding: 12px; font-size: 1rem; } }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI','Inter',Tahoma,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2c1a10 0%,#4a3728 40%,#5D4037 70%,#3E2723 100%);padding:20px;direction:rtl}
+        .login-wrapper{width:100%;max-width:420px}
+        .login-card{background:rgba(255,255,255,0.97);border-radius:20px;padding:40px 30px;box-shadow:0 20px 60px rgba(0,0,0,0.4);text-align:center}
+        .login-logo{width:80px;height:80px;background:linear-gradient(135deg,#8B4513,#D2691E);border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:#fff;box-shadow:0 8px 20px rgba(139,69,19,0.3)}
+        .login-title{font-size:1.8rem;font-weight:700;color:#3E2723;margin-bottom:6px}
+        .login-subtitle{color:#8B7355;font-size:0.9rem;margin-bottom:30px}
+        .form-group{margin-bottom:18px;text-align:right}
+        .form-group label{display:block;margin-bottom:6px;color:#3E2723;font-weight:600;font-size:0.9rem}
+        .form-input{width:100%;padding:12px 16px;border:2px solid #e0d5c8;border-radius:12px;font-size:1rem;font-family:inherit;transition:all 0.3s ease;background:#faf8f5;color:#3E2723;outline:none}
+        .form-input:focus{border-color:#8B4513;background:#fff;box-shadow:0 0 0 4px rgba(139,69,19,0.1)}
+        .btn-login{width:100%;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);color:#fff;border:none;border-radius:12px;font-size:1.1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.3s ease;margin-top:8px}
+        .btn-login:hover{background:linear-gradient(135deg,#6B3410,#8B4513);transform:translateY(-2px);box-shadow:0 8px 25px rgba(139,69,19,0.4)}
+        .btn-login:disabled{opacity:0.7;cursor:not-allowed;transform:none}
+        .login-error{color:#e74c3c;font-size:0.85rem;margin-top:12px;display:none;text-align:center;padding:8px;background:rgba(231,76,60,0.08);border-radius:8px}
+        @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+        @media(max-width:480px){.login-card{padding:30px 20px;border-radius:16px}.login-logo{width:60px;height:60px;font-size:2rem}.login-title{font-size:1.5rem}.form-input{padding:10px 14px}.btn-login{padding:12px;font-size:1rem}}
     </style>
 </head>
 <body data-page="login">
-
     <div class="login-wrapper">
         <div class="login-card">
-            <div class="login-logo">☕</div>
+            <div class="login-logo" aria-hidden="true">☕</div>
             <h1 class="login-title">ARA Coffee</h1>
             <p class="login-subtitle">سیستم صندوق فروشگاهی و حسابداری</p>
-            
             <form id="login-form" autocomplete="off">
-                <div class="form-group">
-                    <label for="username">👤 نام کاربری</label>
-                    <input type="text" id="username" class="form-input" placeholder="نام کاربری" required autocomplete="off" dir="rtl">
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">🔒 رمز عبور</label>
-                    <input type="password" id="password" class="form-input" placeholder="رمز عبور" required autocomplete="off" dir="rtl">
-                </div>
-                
+                <div class="form-group"><label for="username">👤 نام کاربری</label><input type="text" id="username" class="form-input" placeholder="نام کاربری" required autocomplete="off" dir="rtl"></div>
+                <div class="form-group"><label for="password">🔒 رمز عبور</label><input type="password" id="password" class="form-input" placeholder="رمز عبور" required autocomplete="off" dir="rtl"></div>
                 <button type="submit" class="btn-login">ورود به سیستم</button>
-                
                 <p class="login-error" id="login-error"></p>
             </form>
         </div>
     </div>
-
-    <div class="toast-container" id="toast-container"></div>
-
-    <script>
-        // ==========================================
-        // LOGIN SYSTEM WITH SHA-256 HASH + AUTO UPGRADE
-        // ==========================================
-        
-        (async function() {
-            
-            // ========== HASH FUNCTION ==========
-            async function hashPassword(password) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(password + 'ARA_Coffee_Salt_2026');
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-            
-            // ========== GET USERS ==========
-            function getUsers() {
-                try {
-                    return JSON.parse(localStorage.getItem('ara_users') || '[]');
-                } catch(e) {
-                    return [];
-                }
-            }
-            
-            // ========== SAVE USERS ==========
-            function saveUsers(users) {
-                localStorage.setItem('ara_users', JSON.stringify(users));
-            }
-            
-            // ========== CHECK SESSION ==========
-            function isLoggedIn() {
-                try {
-                    const s = localStorage.getItem('ara_session');
-                    if (!s) return false;
-                    const d = JSON.parse(s);
-                    return new Date() < new Date(d.expiresAt);
-                } catch(e) { return false; }
-            }
-            
-            // ========== AUTO UPGRADE OLD USERS ==========
-            async function upgradeUsersIfNeeded() {
-                let users = getUsers();
-                let needsUpgrade = false;
-                
-                // Check if any user has plain password (no hash)
-                for (let user of users) {
-                    if (user.password && !user.passwordHash) {
-                        // Convert plain password to hash
-                        user.passwordHash = await hashPassword(user.password);
-                        delete user.password; // Remove plain password
-                        needsUpgrade = true;
-                        console.log('🔒 Upgraded user:', user.username);
-                    }
-                }
-                
-                if (needsUpgrade) {
-                    saveUsers(users);
-                    console.log('✅ All users upgraded to SHA-256 + Salt');
-                }
-            }
-            
-            // ========== INIT ==========
-            async function init() {
-                // Check session
-                if (isLoggedIn()) {
-                    window.location.href = '/index.html';
-                    return;
-                }
-                
-                // Upgrade old users
-                await upgradeUsersIfNeeded();
-                
-                // Create default admin if no users
-                let users = getUsers();
-                if (users.length === 0) {
-                    console.log('🔧 Creating default admin...');
-                    const hash = await hashPassword('admin123');
-                    users = [{
-                        id: 'user-admin-default',
-                        username: 'admin',
-                        passwordHash: hash,
-                        role: 'admin',
-                        isActive: true,
-                        createdAt: new Date().toISOString()
-                    }];
-                    saveUsers(users);
-                    console.log('✅ Default admin created: admin / admin123');
-                    console.log('🔒 Hash:', hash);
-                }
-            }
-            
-            // ========== HANDLE LOGIN ==========
-            async function handleLogin(e) {
-                e.preventDefault();
-                
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value;
-                const errorEl = document.getElementById('login-error');
-                const btn = document.querySelector('.btn-login');
-                
-                errorEl.style.display = 'none';
-                
-                // Validate
-                if (!username) {
-                    errorEl.textContent = 'لطفاً نام کاربری را وارد کنید';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-                if (!password) {
-                    errorEl.textContent = 'لطفاً رمز عبور را وارد کنید';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-                
-                // Loading
-                btn.textContent = '⏳ در حال ورود...';
-                btn.disabled = true;
-                
-                try {
-                    const users = getUsers();
-                    
-                    // Find user
-                    const user = users.find(u => 
-                        u.username.toLowerCase() === username.toLowerCase() && 
-                        u.isActive !== false
-                    );
-                    
-                    if (!user) {
-                        throw new Error('کاربر یافت نشد');
-                    }
-                    
-                    // Check password
-                    let isValid = false;
-                    
-                    if (user.passwordHash) {
-                        // Hashed password - compare hashes
-                        const inputHash = await hashPassword(password);
-                        isValid = (inputHash === user.passwordHash);
-                        console.log('🔒 Hash comparison:', isValid);
-                    } else if (user.password) {
-                        // Plain password (shouldn't happen after upgrade)
-                        isValid = (password === user.password);
-                        console.log('⚠️ Plain text comparison (should upgrade)');
-                        
-                        // Upgrade this user
-                        user.passwordHash = await hashPassword(password);
-                        delete user.password;
-                        saveUsers(users);
-                    }
-                    
-                    if (!isValid) {
-                        // Add delay to prevent brute force
-                        await new Promise(r => setTimeout(r, 1500));
-                        throw new Error('رمز عبور اشتباه');
-                    }
-                    
-                    // SUCCESS!
-                    console.log('✅ Login successful:', username);
-                    
-                    // Create session (8 hours)
-                    localStorage.setItem('ara_session', JSON.stringify({
-                        userId: user.id,
-                        username: user.username,
-                        role: user.role,
-                        loginTime: new Date().toISOString(),
-                        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-                    }));
-                    
-                    btn.textContent = '✅ ورود موفق!';
-                    setTimeout(() => {
-                        window.location.href = '/index.html';
-                    }, 300);
-                    
-                } catch(err) {
-                    console.error('Login failed:', err.message);
-                    errorEl.textContent = '❌ نام کاربری یا رمز عبور اشتباه است';
-                    errorEl.style.display = 'block';
-                    btn.textContent = 'ورود به سیستم';
-                    btn.disabled = false;
-                    
-                    // Shake animation
-                    const form = document.getElementById('login-form');
-                    form.style.animation = 'none';
-                    form.offsetHeight;
-                    form.style.animation = 'shake 0.5s ease';
-                }
-            }
-            
-            // ========== START ==========
-            await init();
-            
-            // Form submit
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
-            
-            // Enter key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    document.getElementById('login-form').dispatchEvent(new Event('submit'));
-                }
-            });
-            
-            console.log('🔒 Secure login system ready');
-            console.log('   - SHA-256 hashing');
-            console.log('   - Salt: ARA_Coffee_Salt_2026');
-            console.log('   - Auto-upgrade old passwords');
-            console.log('   - Brute force protection');
-            console.log('   - 8 hour session');
-            
-        })();
-    </script>
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+    <script src="./js/github-db.js"></script>
+    <script src="./js/auth.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/app.js"></script>
 </body>
 </html>
