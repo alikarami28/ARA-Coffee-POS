@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:52:24.615Z",
+  "lastUpdated": "2026-06-08T08:52:53.674Z",
   "products": [
     {
       "id": "prod-1",
@@ -140,11 +140,11 @@
       "categoryId": "cat-default-1",
       "price": 175000,
       "description": "قهوه دم‌سرد با طعمی ملایم و کم‌اسید",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908770488-t5kgn.jpg",
       "isActive": true,
       "displayOrder": 11,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:52:53.673Z"
     },
     {
       "id": "prod-13",
