@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:53:33.951Z",
+  "lastUpdated": "2026-06-08T08:53:52.999Z",
   "products": [
     {
       "id": "prod-1",
@@ -164,11 +164,11 @@
       "categoryId": "cat-default-2",
       "price": 45000,
       "description": "چای ساده و معطر، مناسب مصرف روزانه",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908829803-aodmc.jpg",
       "isActive": true,
       "displayOrder": 13,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:53:52.998Z"
     },
     {
       "id": "prod-15",
