@@ -95,10 +95,6 @@
             box-shadow: 0 0 0 4px rgba(139, 69, 19, 0.1);
         }
 
-        .form-input::placeholder {
-            color: #b8a99a;
-        }
-
         .btn-login {
             width: 100%;
             padding: 14px;
@@ -146,25 +142,11 @@
         }
 
         @media (max-width: 480px) {
-            .login-card {
-                padding: 30px 20px;
-                border-radius: 16px;
-            }
-            .login-logo {
-                width: 60px;
-                height: 60px;
-                font-size: 2rem;
-            }
-            .login-title {
-                font-size: 1.5rem;
-            }
-            .form-input {
-                padding: 10px 14px;
-            }
-            .btn-login {
-                padding: 12px;
-                font-size: 1rem;
-            }
+            .login-card { padding: 30px 20px; border-radius: 16px; }
+            .login-logo { width: 60px; height: 60px; font-size: 2rem; }
+            .login-title { font-size: 1.5rem; }
+            .form-input { padding: 10px 14px; }
+            .btn-login { padding: 12px; font-size: 1rem; }
         }
     </style>
 </head>
@@ -179,12 +161,12 @@
             <form id="login-form" autocomplete="off">
                 <div class="form-group">
                     <label for="username">👤 نام کاربری</label>
-                    <input type="text" id="username" class="form-input" placeholder="نام کاربری خود را وارد کنید" required autocomplete="off" dir="rtl">
+                    <input type="text" id="username" class="form-input" placeholder="نام کاربری" required autocomplete="off" dir="rtl">
                 </div>
                 
                 <div class="form-group">
                     <label for="password">🔒 رمز عبور</label>
-                    <input type="password" id="password" class="form-input" placeholder="رمز عبور خود را وارد کنید" required autocomplete="off" dir="rtl">
+                    <input type="password" id="password" class="form-input" placeholder="رمز عبور" required autocomplete="off" dir="rtl">
                 </div>
                 
                 <button type="submit" class="btn-login">ورود به سیستم</button>
@@ -196,29 +178,183 @@
 
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="/js/github-db.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/app.js"></script>
     <script>
-// Reset admin - فقط یه بار اجرا کن بعد حذفش کن
-(async function() {
-    const encoder = new TextEncoder();
-    const data = encoder.encode('admin123');
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    
-    localStorage.setItem('ara_users', JSON.stringify([{
-        id: 'user-admin-default',
-        username: 'admin',
-        passwordHash: hash,
-        role: 'admin',
-        isActive: true,
-        createdAt: new Date().toISOString()
-    }]));
-    
-    console.log('Admin reset done!');
-})();
+        // ==========================================
+        // LOGIN SYSTEM - COMPLETELY SELF-CONTAINED
+        // ==========================================
+        
+        const DEFAULT_USERNAME = 'admin';
+        const DEFAULT_PASSWORD = 'admin123';
+        
+        // Simple hash function
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        // Get users
+        function getUsers() {
+            try {
+                return JSON.parse(localStorage.getItem('ara_users') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+        
+        // Save users
+        function saveUsers(users) {
+            localStorage.setItem('ara_users', JSON.stringify(users));
+        }
+        
+        // Check if logged in
+        function isLoggedIn() {
+            try {
+                const s = localStorage.getItem('ara_session');
+                if (!s) return false;
+                const d = JSON.parse(s);
+                return new Date() < new Date(d.expiresAt);
+            } catch (e) { return false; }
+        }
+        
+        // Initialize
+        async function init() {
+            // If already logged in, redirect
+            if (isLoggedIn()) {
+                window.location.href = '/index.html';
+                return;
+            }
+            
+            // Check if users exist
+            let users = getUsers();
+            
+            // If no users, create default admin
+            if (users.length === 0) {
+                console.log('Creating default admin...');
+                const hash = await hashPassword(DEFAULT_PASSWORD);
+                users = [{
+                    id: 'user-admin-default',
+                    username: DEFAULT_USERNAME,
+                    passwordHash: hash,
+                    role: 'admin',
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                }];
+                saveUsers(users);
+                console.log('✅ Default admin created');
+                console.log('Username:', DEFAULT_USERNAME);
+                console.log('Password:', DEFAULT_PASSWORD);
+                console.log('Hash:', hash);
+            } else {
+                console.log('Users found:', users.length);
+                users.forEach(u => console.log('User:', u.username, 'Hash:', u.passwordHash?.substring(0, 16) + '...'));
+            }
+        }
+        
+        // Handle login
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('login-error');
+            const btn = document.querySelector('.btn-login');
+            
+            // Hide error
+            errorEl.style.display = 'none';
+            
+            // Validate
+            if (!username) {
+                errorEl.textContent = 'لطفاً نام کاربری را وارد کنید';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (!password) {
+                errorEl.textContent = 'لطفاً رمز عبور را وارد کنید';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            // Show loading
+            btn.textContent = '⏳ در حال ورود...';
+            btn.disabled = true;
+            
+            try {
+                // Get users
+                const users = getUsers();
+                
+                // Debug
+                console.log('Login attempt:', username);
+                console.log('Available users:', users.map(u => u.username));
+                
+                // Find user
+                const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.isActive);
+                
+                if (!user) {
+                    console.log('User not found:', username);
+                    errorEl.textContent = '❌ نام کاربری یا رمز عبور اشتباه است';
+                    errorEl.style.display = 'block';
+                    btn.textContent = 'ورود به سیستم';
+                    btn.disabled = false;
+                    return;
+                }
+                
+                // Hash password
+                const hash = await hashPassword(password);
+                console.log('Input hash:', hash);
+                console.log('Stored hash:', user.passwordHash);
+                
+                // Compare
+                if (hash !== user.passwordHash) {
+                    console.log('Password mismatch!');
+                    errorEl.textContent = '❌ نام کاربری یا رمز عبور اشتباه است';
+                    errorEl.style.display = 'block';
+                    btn.textContent = 'ورود به سیستم';
+                    btn.disabled = false;
+                    return;
+                }
+                
+                // Success!
+                console.log('✅ Login successful!');
+                
+                // Create session
+                const session = {
+                    userId: user.id,
+                    username: user.username,
+                    role: user.role,
+                    expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
+                };
+                localStorage.setItem('ara_session', JSON.stringify(session));
+                
+                // Redirect
+                btn.textContent = '✅ ورود موفق!';
+                setTimeout(() => {
+                    window.location.href = '/index.html';
+                }, 300);
+                
+            } catch (err) {
+                console.error('Login error:', err);
+                errorEl.textContent = '❌ خطا در ورود';
+                errorEl.style.display = 'block';
+                btn.textContent = 'ورود به سیستم';
+                btn.disabled = false;
+            }
+        }
+        
+        // Start
+        init();
+        
+        // Form submit
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+        
+        // Enter key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('login-form').dispatchEvent(new Event('submit'));
+            }
+        });
     </script>
 </body>
 </html>
