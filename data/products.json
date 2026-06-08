@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T09:17:39.014Z",
+  "lastUpdated": "2026-06-08T09:18:03.017Z",
   "products": [
     {
       "id": "prod-1",
@@ -104,11 +104,11 @@
       "categoryId": "cat-default-1",
       "price": 120000,
       "description": "اسپرسو با آب سرد و یخ، ساده و انرژی‌بخش",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780910279681-xuyhf.jpg",
       "isActive": true,
       "displayOrder": 8,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T09:18:03.017Z"
     },
     {
       "id": "prod-10",
