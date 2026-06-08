@@ -1,4 +1,4 @@
-// auth.js - Authentication with GitHub Storage
+// auth.js - Authentication with GitHub Storage (Complete)
 class AuthManager {
     static currentUser = null;
     static sessionTimeout = 8 * 60 * 60 * 1000;
@@ -54,18 +54,20 @@ class AuthManager {
         });
     }
 
-    // ==================== GET USERS FROM GITHUB ====================
+    // ==================== GET USERS ====================
     static async _getUsers() {
         // Try GitHub first
         try {
             if (typeof DB !== 'undefined') {
                 const settings = await DB.getSettings();
                 if (settings && settings.users && Array.isArray(settings.users)) {
+                    // Also update localStorage
+                    localStorage.setItem('ara_users', JSON.stringify(settings.users));
                     return settings.users;
                 }
             }
         } catch (e) {
-            console.warn('Could not load users from GitHub');
+            console.warn('Could not load users from GitHub, trying localStorage');
         }
         
         // Fallback to localStorage
@@ -76,18 +78,19 @@ class AuthManager {
         }
     }
 
-    // ==================== SAVE USERS TO GITHUB ====================
+    // ==================== SAVE USERS ====================
     static async _saveUsers(users) {
-        // Always save to localStorage as backup
+        // Always save to localStorage
         localStorage.setItem('ara_users', JSON.stringify(users));
-        
+
         // Try saving to GitHub
         try {
             if (typeof DB !== 'undefined') {
-                const settings = await DB.getSettings();
+                let settings = {};
+                try { settings = await DB.getSettings(); } catch (e) {}
                 settings.users = users;
                 await DB.saveSettings(settings);
-                console.log('✅ Users saved to GitHub');
+                console.log('✅ Users saved to GitHub:', users.length, 'users');
                 return true;
             }
         } catch (e) {
@@ -96,7 +99,7 @@ class AuthManager {
         return false;
     }
 
-    // ==================== ENSURE DEFAULT ADMIN ====================
+    // ==================== DEFAULT ADMIN ====================
     static async ensureDefaultAdmin() {
         const users = await this._getUsers();
         
@@ -139,12 +142,7 @@ class AuthManager {
         };
         
         users.push(newUser);
-        const saved = await this._saveUsers(users);
-        
-        if (saved) {
-            console.log('✅ User saved to GitHub:', username);
-        }
-        
+        await this._saveUsers(users);
         return newUser;
     }
 
