@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:20:49.955Z",
+  "lastUpdated": "2026-06-08T08:21:03.177Z",
   "products": [
     {
       "id": "prod-1",
@@ -32,11 +32,11 @@
       "categoryId": "cat-default-0",
       "price": 110000,
       "description": "اسپرسو رقیق‌شده با آب داغ، سبک و متعادل",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780906860428-749fe.jpg",
       "isActive": true,
       "displayOrder": 2,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:21:03.177Z"
     },
     {
       "id": "prod-4",
