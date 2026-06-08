@@ -270,57 +270,6 @@
       "cashierId": "system",
       "paymentMethod": "Cash",
       "createdAt": "2026-06-07T22:26:49.816Z"
-    },
-    {
-      "id": "ord-1780910655288-v3uqi",
-      "invoiceNumber": "ARA-20260608-1254-870",
-      "items": [
-        {
-          "productId": "prod-7",
-          "productName": "کارامل لاته",
-          "unitPrice": 195000,
-          "discountedUnitPrice": 175500,
-          "quantity": 1,
-          "totalPrice": 195000,
-          "discountedTotal": 175500
-        },
-        {
-          "productId": "prod-10",
-          "productName": "آیس موکا",
-          "unitPrice": 205000,
-          "discountedUnitPrice": 184500,
-          "quantity": 1,
-          "totalPrice": 205000,
-          "discountedTotal": 184500
-        },
-        {
-          "productId": "prod-19",
-          "productName": "دمنوش بابونه",
-          "unitPrice": 80000,
-          "discountedUnitPrice": 72000,
-          "quantity": 1,
-          "totalPrice": 80000,
-          "discountedTotal": 72000
-        },
-        {
-          "productId": "prod-14",
-          "productName": "چای سیاه کلاسیک",
-          "unitPrice": 45000,
-          "discountedUnitPrice": 40500,
-          "quantity": 1,
-          "totalPrice": 45000,
-          "discountedTotal": 40500
-        }
-      ],
-      "subtotal": 525000,
-      "taxRate": 10,
-      "taxAmount": 52500,
-      "discountPercent": 10,
-      "discountAmount": 52500,
-      "finalAmount": 525000,
-      "cashierId": "system",
-      "paymentMethod": "Cash",
-      "createdAt": "2026-06-08T09:24:15.288Z"
     }
   ]
 }
