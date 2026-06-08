@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:55:09.448Z",
+  "lastUpdated": "2026-06-08T08:55:47.360Z",
   "products": [
     {
       "id": "prod-1",
@@ -224,11 +224,11 @@
       "categoryId": "cat-default-2",
       "price": 80000,
       "description": "آرام‌بخش طبیعی با طعمی لطیف",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908942067-a21vt.jpg",
       "isActive": true,
       "displayOrder": 18,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:55:47.360Z"
     },
     {
       "id": "prod-20",
