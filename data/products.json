@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:56:37.069Z",
+  "lastUpdated": "2026-06-08T08:57:20.163Z",
   "products": [
     {
       "id": "prod-1",
@@ -224,11 +224,11 @@
       "categoryId": "cat-default-2",
       "price": 80000,
       "description": "آرام‌بخش طبیعی با طعمی لطیف",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780909029711-pqoda.jpg",
       "isActive": true,
       "displayOrder": 18,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:57:20.163Z"
     },
     {
       "id": "prod-20",
@@ -236,11 +236,11 @@
       "categoryId": "cat-default-2",
       "price": 80000,
       "description": "خنک و خوش‌عطر، مناسب آرامش و هضم",
-      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908992274-7uc1g.jpg",
+      "image": "",
       "isActive": true,
       "displayOrder": 19,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T08:56:37.069Z"
+      "updatedAt": "2026-06-08T00:00:00Z"
     },
     {
       "id": "prod-21",
