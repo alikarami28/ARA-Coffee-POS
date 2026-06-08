@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-06-08T08:54:33.031Z",
+  "lastUpdated": "2026-06-08T08:54:50.652Z",
   "products": [
     {
       "id": "prod-1",
@@ -200,11 +200,11 @@
       "categoryId": "cat-default-2",
       "price": 205000,
       "description": "چای سبز ژاپنی با شیر، ملایم و سالم",
-      "image": "",
+      "image": "https://raw.githubusercontent.com/alikarami28/ARA-Coffee-POS/main/assets/images/products/product-1780908887507-doddx.jpg",
       "isActive": true,
       "displayOrder": 16,
       "createdAt": "2026-06-08T00:00:00Z",
-      "updatedAt": "2026-06-08T00:00:00Z"
+      "updatedAt": "2026-06-08T08:54:50.652Z"
     },
     {
       "id": "prod-18",
