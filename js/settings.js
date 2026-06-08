@@ -1,23 +1,19 @@
-// settings.js - Settings Page Logic (Complete with Discount)
+// settings.js - Settings with User Management
 class SettingsPage {
     static async init() {
         console.log('🔧 SettingsPage init');
         await this.loadSettings();
+        this.loadUsers();
         this.setupForm();
         this.setupGitHub();
         this.setupBackup();
+        this.setupUserManagement();
     }
 
     static async loadSettings() {
         let settings = {};
+        try { settings = await DB.getSettings(); } catch (e) {}
         
-        try {
-            settings = await DB.getSettings();
-            console.log('📦 Settings from GitHub');
-        } catch (e) {
-            console.warn('Could not load from GitHub');
-        }
-
         this.setField('cafe-name', settings.cafeName || 'ARA Coffee');
         this.setField('cafe-address', settings.address || '');
         this.setField('cafe-phone', settings.phone || '');
@@ -27,18 +23,100 @@ class SettingsPage {
         this.setField('tax-rate', settings.taxRate || 10);
         this.setField('discount-percent-setting', settings.discountPercent || 0);
         this.setField('printer-type', settings.printerType || '58mm');
-        
         this.setField('github-owner', localStorage.getItem('ara_github_owner') || 'alikarami28');
         this.setField('github-repo', localStorage.getItem('ara_github_repo') || 'ARA-Coffee-POS');
         this.setField('github-branch', localStorage.getItem('ara_github_branch') || 'main');
         this.setField('github-token', localStorage.getItem('ara_github_token') || '');
     }
 
-    static setField(id, value) {
-        const el = document.getElementById(id);
-        if (el) el.value = value;
+    static setField(id, value) { const el = document.getElementById(id); if (el) el.value = value; }
+
+    // ==================== USER MANAGEMENT ====================
+    static loadUsers() {
+        const users = JSON.parse(localStorage.getItem('ara_users') || '[]');
+        const container = document.getElementById('users-list-settings');
+        if (!container) return;
+
+        if (users.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:12px;">هیچ کاربری یافت نشد</p>';
+            return;
+        }
+
+        container.innerHTML = users.map(user => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-secondary);border-radius:8px;margin-bottom:6px;border:1px solid var(--glass-border);">
+                <div>
+                    <strong>${user.username}</strong>
+                    <span style="font-size:0.75rem;color:var(--text-light);margin-right:8px;">${user.role === 'admin' ? '👑 مدیر' : '💼 صندوق‌دار'}</span>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <button type="button" class="btn-sm" onclick="SettingsPage.editUser('${user.id}')" style="background:#2196F3;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✏️</button>
+                    ${user.role !== 'admin' || users.filter(u => u.role === 'admin').length > 1 ? 
+                        `<button type="button" class="btn-sm" onclick="SettingsPage.deleteUser('${user.id}')" style="background:#f44336;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">🗑️</button>` : 
+                        ''}
+                </div>
+            </div>
+        `).join('');
     }
 
+    static setupUserManagement() {
+        document.getElementById('add-user-btn-settings')?.addEventListener('click', async () => {
+            const username = document.getElementById('new-username').value.trim();
+            const password = document.getElementById('new-password').value;
+            const role = document.getElementById('new-role').value;
+
+            if (!username) { UI.showToast('error', 'نام کاربری را وارد کنید'); return; }
+            if (!password || password.length < 4) { UI.showToast('error', 'رمز عبور حداقل ۴ کاراکتر'); return; }
+
+            try {
+                await AuthManager.createUser(username, password, role);
+                document.getElementById('new-username').value = '';
+                document.getElementById('new-password').value = '';
+                this.loadUsers();
+                UI.showToast('success', '✅ کاربر جدید اضافه شد');
+            } catch (e) {
+                UI.showToast('error', e.message);
+            }
+        });
+    }
+
+    static async editUser(userId) {
+        const users = JSON.parse(localStorage.getItem('ara_users') || '[]');
+        const user = users.find(u => u.id === userId);
+        if (!user) return;
+
+        const newPassword = prompt(`ویرایش کاربر: ${user.username}\n\nرمز عبور جدید (خالی = بدون تغییر):`);
+        if (newPassword === null) return;
+
+        try {
+            if (newPassword && newPassword.length < 4) {
+                UI.showToast('error', 'رمز عبور حداقل ۴ کاراکتر');
+                return;
+            }
+            await AuthManager.updateUser(userId, { password: newPassword || undefined });
+            this.loadUsers();
+            UI.showToast('success', '✅ رمز عبور بروزرسانی شد');
+        } catch (e) {
+            UI.showToast('error', e.message);
+        }
+    }
+
+    static async deleteUser(userId) {
+        const users = JSON.parse(localStorage.getItem('ara_users') || '[]');
+        const user = users.find(u => u.id === userId);
+        if (!user) return;
+
+        if (!confirm(`آیا از حذف کاربر "${user.username}" اطمینان دارید؟`)) return;
+
+        try {
+            await AuthManager.deleteUser(userId);
+            this.loadUsers();
+            UI.showToast('success', '🗑️ کاربر حذف شد');
+        } catch (e) {
+            UI.showToast('error', e.message);
+        }
+    }
+
+    // ==================== SAVE SETTINGS ====================
     static setupForm() {
         document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -60,34 +138,21 @@ class SettingsPage {
             theme: document.documentElement.getAttribute('data-theme') || 'light'
         };
 
-        // Save GitHub config
-        const ghOwner = document.getElementById('github-owner')?.value?.trim();
-        const ghRepo = document.getElementById('github-repo')?.value?.trim();
-        const ghBranch = document.getElementById('github-branch')?.value?.trim();
-        const ghToken = document.getElementById('github-token')?.value?.trim();
-
-        if (ghOwner) localStorage.setItem('ara_github_owner', ghOwner);
-        if (ghRepo) localStorage.setItem('ara_github_repo', ghRepo);
-        if (ghBranch) localStorage.setItem('ara_github_branch', ghBranch);
-        if (ghToken) localStorage.setItem('ara_github_token', ghToken);
-
-        // Save all settings to localStorage immediately
-        Object.entries(settings).forEach(([key, value]) => {
-            localStorage.setItem('ara_' + key, JSON.stringify(value));
+        const gh = ['github_owner','github_repo','github_branch','github_token'];
+        ['owner','repo','branch','token'].forEach((k, i) => {
+            const v = document.getElementById('github-' + k)?.value?.trim();
+            if (v) localStorage.setItem('ara_' + gh[i], v);
         });
 
-        console.log('💾 Settings saved to localStorage:', settings);
+        Object.entries(settings).forEach(([k, v]) => {
+            localStorage.setItem('ara_' + k, JSON.stringify(v));
+        });
 
-        // Try saving to GitHub
-        UI.showToast('info', '⏳ در حال ذخیره در GitHub...');
-        
+        UI.showToast('info', '⏳ ذخیره در GitHub...');
         const result = await DB.saveSettings(settings);
         
-        if (result && result.success) {
-            UI.showToast('success', '✅ تنظیمات در GitHub ذخیره شد');
-        } else {
-            UI.showToast('warning', '⚠️ تنظیمات فقط در مرورگر ذخیره شد. ' + (result?.message || ''));
-        }
+        if (result?.success) UI.showToast('success', '✅ تنظیمات در GitHub ذخیره شد');
+        else UI.showToast('warning', '⚠️ فقط در مرورگر ذخیره شد');
     }
 
     static setupGitHub() {
@@ -95,7 +160,6 @@ class SettingsPage {
             const token = document.getElementById('github-token')?.value?.trim();
             if (!token) { UI.showToast('warning', 'توکن را وارد کنید'); return; }
             localStorage.setItem('ara_github_token', token);
-            UI.showToast('info', '⏳ تست اتصال...');
             const result = await DB.testConnection();
             if (result.success) UI.showToast('success', result.message);
             else UI.showToast('error', result.message);
@@ -103,27 +167,16 @@ class SettingsPage {
 
         document.getElementById('btn-sync-github')?.addEventListener('click', async () => {
             if (!confirm('اطلاعات GitHub با اطلاعات فعلی جایگزین می‌شود. ادامه؟')) return;
-            UI.showToast('info', '⏳ همگام‌سازی...');
-            try {
-                const [products, categories, orders] = await Promise.all([
-                    DB.getProducts(), DB.getCategories(), DB.getOrders()
-                ]);
-                await DB.saveProducts(products);
-                await DB.saveCategories(categories);
-                await DB.saveOrders(orders);
-                UI.showToast('success', '✅ همگام‌سازی شد');
-            } catch (e) {
-                UI.showToast('error', '❌ ' + e.message);
-            }
+            const [p, c, o] = await Promise.all([DB.getProducts(), DB.getCategories(), DB.getOrders()]);
+            await DB.saveProducts(p); await DB.saveCategories(c); await DB.saveOrders(o);
+            UI.showToast('success', '✅ همگام‌سازی شد');
         });
     }
 
     static setupBackup() {
         document.getElementById('btn-export-backup')?.addEventListener('click', async () => {
-            const [products, categories, orders] = await Promise.all([
-                DB.getProducts(), DB.getCategories(), DB.getOrders()
-            ]);
-            const backup = { version: '1.0', exportDate: new Date().toISOString(), products, categories, orders };
+            const [p, c, o] = await Promise.all([DB.getProducts(), DB.getCategories(), DB.getOrders()]);
+            const backup = { version: '1.0', exportDate: new Date().toISOString(), products: p, categories: c, orders: o };
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -132,9 +185,7 @@ class SettingsPage {
             UI.showToast('success', '✅ بکاپ دانلود شد');
         });
 
-        document.getElementById('btn-import-backup')?.addEventListener('click', () => {
-            document.getElementById('import-file')?.click();
-        });
+        document.getElementById('btn-import-backup')?.addEventListener('click', () => document.getElementById('import-file')?.click());
 
         document.getElementById('import-file')?.addEventListener('change', async (e) => {
             if (!e.target.files[0]) return;
@@ -148,9 +199,7 @@ class SettingsPage {
                     if (data.orders) await DB.saveOrders(data.orders);
                     UI.showToast('success', '✅ بازیابی شد');
                     setTimeout(() => location.reload(), 2000);
-                } catch (err) {
-                    UI.showToast('error', '❌ فایل نامعتبر');
-                }
+                } catch (err) { UI.showToast('error', '❌ فایل نامعتبر'); }
             };
             reader.readAsText(e.target.files[0]);
         });
