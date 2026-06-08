@@ -270,6 +270,66 @@
       "cashierId": "system",
       "paymentMethod": "Cash",
       "createdAt": "2026-06-07T22:26:49.816Z"
+    },
+    {
+      "id": "ord-1780952293438-8z9ce",
+      "invoiceNumber": "ARA-20260609-0028-247",
+      "items": [
+        {
+          "productId": "prod-21",
+          "productName": "دمنوش به‌لیمو",
+          "unitPrice": 85000,
+          "discountedUnitPrice": 72250,
+          "quantity": 1,
+          "totalPrice": 85000,
+          "discountedTotal": 72250
+        },
+        {
+          "productId": "prod-6",
+          "productName": "موکا",
+          "unitPrice": 195000,
+          "discountedUnitPrice": 165750,
+          "quantity": 1,
+          "totalPrice": 195000,
+          "discountedTotal": 165750
+        },
+        {
+          "productId": "prod-5",
+          "productName": "کاپوچینو",
+          "unitPrice": 185000,
+          "discountedUnitPrice": 157250,
+          "quantity": 1,
+          "totalPrice": 185000,
+          "discountedTotal": 157250
+        },
+        {
+          "productId": "prod-4",
+          "productName": "لاته",
+          "unitPrice": 185000,
+          "discountedUnitPrice": 157250,
+          "quantity": 1,
+          "totalPrice": 185000,
+          "discountedTotal": 157250
+        },
+        {
+          "productId": "prod-1",
+          "productName": "اسپرسو سینگل",
+          "unitPrice": 85000,
+          "discountedUnitPrice": 72250,
+          "quantity": 2,
+          "totalPrice": 170000,
+          "discountedTotal": 144500
+        }
+      ],
+      "subtotal": 820000,
+      "taxRate": 10,
+      "taxAmount": 82000,
+      "discountPercent": 15,
+      "discountAmount": 123000,
+      "finalAmount": 779000,
+      "cashierId": "system",
+      "paymentMethod": "Card",
+      "createdAt": "2026-06-08T20:58:13.438Z"
     }
   ]
 }
