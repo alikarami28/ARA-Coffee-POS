@@ -10,38 +10,8 @@
   "printerType": "80mm",
   "theme": "\"light\"",
   "users": [
-    {
-      "id": "user-1780948577474",
-      "username": "Alikarami28",
-      "passwordHash": "61f30c44f942c7c5b4c997241944dd2aa0ea9715f8fa1df9047fc59439cd49e0",
-      "role": "admin",
-      "isActive": true,
-      "createdAt": "2026-06-08T19:56:17.474Z"
-    },
-    {
-      "id": "user-1780952788288",
-      "username": "Armin",
-      "passwordHash": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
-      "role": "admin",
-      "isActive": true,
-      "createdAt": "2026-06-08T21:06:28.288Z"
-    },
-    {
-      "id": "user-1781012848419",
-      "username": "Armin",
-      "passwordHash": "b07139e0595e9b4d872d1fbcdd9c8e7688409c098965da0bb3cf2c426b402acb",
-      "role": "cashier",
-      "isActive": true,
-      "createdAt": "2026-06-09T13:47:28.419Z"
-    },
-    {
-      "id": "user-1781015648855",
-      "username": "Alikarami28",
-      "passwordHash": "9a2bedf0b91e140ad4914031ffa1042233e35ba49b287fea53f97e98fbb218e8",
-      "role": "admin",
-      "isActive": true,
-      "createdAt": "2026-06-09T14:34:08.855Z"
-    },
+
+  
     {
       "id": "user-1781015667087",
       "username": "Armin",
