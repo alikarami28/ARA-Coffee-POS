@@ -33,6 +33,30 @@
       "role": "cashier",
       "isActive": true,
       "createdAt": "2026-06-09T13:47:28.419Z"
+    },
+    {
+      "id": "user-admin-default",
+      "username": "admin",
+      "passwordHash": "0e69718596ce60c7acad14e759a17780a2b2978067fa80de166efd9cc9bf2090",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2026-06-09T14:26:09.093Z"
+    },
+    {
+      "id": "user-1781015648855",
+      "username": "Alikarami28",
+      "passwordHash": "9a2bedf0b91e140ad4914031ffa1042233e35ba49b287fea53f97e98fbb218e8",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2026-06-09T14:34:08.855Z"
+    },
+    {
+      "id": "user-1781015667087",
+      "username": "Armin",
+      "passwordHash": "b07139e0595e9b4d872d1fbcdd9c8e7688409c098965da0bb3cf2c426b402acb",
+      "role": "cashier",
+      "isActive": true,
+      "createdAt": "2026-06-09T14:34:27.087Z"
     }
   ]
 }
