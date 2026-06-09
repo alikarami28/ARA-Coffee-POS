@@ -3,12 +3,12 @@
   "address": "تهران خیابان آذربایجان",
   "phone": "۰۹۹۲۸۹۹۱۲۷۴",
   "instagram": "",
-  "website": "",
+  "website": "aracafe.ir",
   "currency": "تومان",
   "taxRate": 10,
   "discountPercent": 0,
   "printerType": "80mm",
-  "theme": "light",
+  "theme": "\"light\"",
   "users": [
     {
       "id": "user-1781029314992",
@@ -25,6 +25,14 @@
       "role": "cashier",
       "isActive": true,
       "createdAt": "2026-06-09T18:27:35.692Z"
+    },
+    {
+      "id": "user-admin-default",
+      "username": "admin",
+      "passwordHash": "0e69718596ce60c7acad14e759a17780a2b2978067fa80de166efd9cc9bf2090",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2026-06-09T21:04:32.336Z"
     }
   ]
 }
