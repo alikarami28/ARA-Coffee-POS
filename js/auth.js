@@ -1,10 +1,26 @@
-// auth.js - Authentication with GitHub Storage (Complete)
+// auth.js - Authentication with Role-Based Access Control
 class AuthManager {
     static currentUser = null;
     static sessionTimeout = 8 * 60 * 60 * 1000;
 
+    // ==================== PAGE PERMISSIONS ====================
+    static PAGE_PERMISSIONS = {
+        'index.html': ['admin', 'cashier'],
+        'pos': ['admin', 'cashier'],
+        'admin.html': ['admin'],
+        'orders.html': ['admin'],
+        'reports.html': ['admin'],
+        'settings.html': ['admin'],
+        'menu.html': ['admin', 'cashier'],
+        'login.html': ['admin', 'cashier']
+    };
+
+    // ==================== INIT LOGIN FORM ====================
     static async initLoginForm() {
-        if (this.isLoggedIn()) { window.location.href = '/index.html'; return; }
+        if (this.isLoggedIn()) {
+            window.location.href = './index.html';
+            return;
+        }
         await this.ensureDefaultAdmin();
 
         const form = document.getElementById('login-form');
@@ -17,120 +33,128 @@ class AuthManager {
             const errorEl = document.getElementById('login-error');
             errorEl.style.display = 'none';
 
-            if (!username) { errorEl.textContent = 'نام کاربری را وارد کنید'; errorEl.style.display = 'block'; return; }
-            if (!password) { errorEl.textContent = 'رمز عبور را وارد کنید'; errorEl.style.display = 'block'; return; }
+            if (!username) {
+                errorEl.textContent = 'لطفاً نام کاربری را وارد کنید';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (!password) {
+                errorEl.textContent = 'لطفاً رمز عبور را وارد کنید';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const btn = form.querySelector('button[type="submit"]');
+            const orig = btn.textContent;
+            btn.textContent = '⏳ در حال ورود...';
+            btn.disabled = true;
 
             try {
-                const users = await this._getUsers();
-                const user = users.find(u => u.username === username && u.isActive);
-                
-                if (!user) {
-                    errorEl.textContent = '❌ نام کاربری یا رمز عبور اشتباه است';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-                
-                const hash = await this._hashPassword(password);
-                if (hash !== user.passwordHash) {
-                    await new Promise(r => setTimeout(r, 1000));
-                    errorEl.textContent = '❌ نام کاربری یا رمز عبور اشتباه است';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-                
-                const session = { 
-                    userId: user.id, 
-                    username: user.username, 
-                    role: user.role, 
-                    expiresAt: new Date(Date.now() + this.sessionTimeout).toISOString() 
-                };
-                localStorage.setItem('ara_session', JSON.stringify(session));
-                window.location.href = '/index.html';
-                
+                await this.login(username, password);
+                btn.textContent = '✅ ورود موفق!';
+                setTimeout(() => { window.location.href = './index.html'; }, 300);
             } catch (err) {
-                errorEl.textContent = '❌ خطا در ورود';
+                errorEl.textContent = err.message;
                 errorEl.style.display = 'block';
+                btn.textContent = orig;
+                btn.disabled = false;
             }
         });
     }
 
-    // ==================== GET USERS ====================
-    static async _getUsers() {
-        // Try GitHub first
-        try {
-            if (typeof DB !== 'undefined') {
-                const settings = await DB.getSettings();
-                if (settings && settings.users && Array.isArray(settings.users)) {
-                    // Also update localStorage
-                    localStorage.setItem('ara_users', JSON.stringify(settings.users));
-                    return settings.users;
-                }
-            }
-        } catch (e) {
-            console.warn('Could not load users from GitHub, trying localStorage');
+    // ==================== LOGIN ====================
+    static async login(username, password) {
+        const users = this._getUsers();
+        const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.isActive);
+
+        if (!user) {
+            throw new Error('❌ نام کاربری یا رمز عبور اشتباه است');
         }
-        
-        // Fallback to localStorage
-        try {
-            return JSON.parse(localStorage.getItem('ara_users') || '[]');
-        } catch (e) {
-            return [];
+
+        const hash = await this._hashPassword(password);
+        if (hash !== user.passwordHash) {
+            await new Promise(r => setTimeout(r, 1500));
+            throw new Error('❌ نام کاربری یا رمز عبور اشتباه است');
         }
+
+        this.currentUser = { id: user.id, username: user.username, role: user.role };
+
+        const session = {
+            userId: user.id,
+            username: user.username,
+            role: user.role,
+            loginTime: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + this.sessionTimeout).toISOString()
+        };
+        localStorage.setItem('ara_session', JSON.stringify(session));
+        console.log('✅ Login:', username, 'Role:', user.role);
+        return this.currentUser;
     }
 
-    // ==================== SAVE USERS ====================
-    static async _saveUsers(users) {
-        // Always save to localStorage
+    // ==================== PERMISSION CHECK ====================
+    static canAccess(page) {
+        const user = this.getCurrentUser();
+        if (!user) return false;
+        if (user.role === 'admin') return true;
+        const allowedRoles = this.PAGE_PERMISSIONS[page];
+        if (!allowedRoles) return false;
+        return allowedRoles.includes(user.role);
+    }
+
+    static checkPageAccess() {
+        const currentPage = document.body.getAttribute('data-page');
+        const pageName = currentPage || window.location.pathname.split('/').pop() || 'index.html';
+        if (pageName === 'login' || pageName === 'login.html') return true;
+
+        if (!this.canAccess(pageName)) {
+            console.warn('⛔ Access denied for:', pageName);
+            document.body.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Tahoma;direction:rtl;background:#FFF8F0;">
+                    <div style="text-align:center;padding:40px;max-width:500px;">
+                        <div style="font-size:5rem;margin-bottom:20px;">🔒</div>
+                        <h1 style="color:#8B4513;margin-bottom:16px;">دسترسی غیرمجاز</h1>
+                        <p style="color:#666;margin-bottom:24px;font-size:1.1rem;">شما مجوز دسترسی به این بخش را ندارید.</p>
+                        <p style="color:#888;margin-bottom:24px;font-size:0.9rem;">نقش شما: <strong>${this.getCurrentUser()?.role === 'cashier' ? 'صندوق‌دار' : 'نامشخص'}</strong></p>
+                        <a href="./index.html" style="display:inline-block;padding:12px 24px;background:#8B4513;color:#fff;text-decoration:none;border-radius:8px;font-size:1rem;">بازگشت به صندوق فروش</a>
+                    </div>
+                </div>`;
+            return false;
+        }
+        return true;
+    }
+
+    // ==================== USERS CRUD ====================
+    static _getUsers() {
+        try { return JSON.parse(localStorage.getItem('ara_users') || '[]'); } catch (e) { return []; }
+    }
+
+    static _saveUsers(users) {
         localStorage.setItem('ara_users', JSON.stringify(users));
-
-        // Try saving to GitHub
-        try {
-            if (typeof DB !== 'undefined') {
-                let settings = {};
-                try { settings = await DB.getSettings(); } catch (e) {}
-                settings.users = users;
-                await DB.saveSettings(settings);
-                console.log('✅ Users saved to GitHub:', users.length, 'users');
-                return true;
-            }
-        } catch (e) {
-            console.warn('Users saved to localStorage only:', e.message);
-        }
-        return false;
     }
 
-    // ==================== DEFAULT ADMIN ====================
     static async ensureDefaultAdmin() {
-        const users = await this._getUsers();
-        
+        const users = this._getUsers();
         if (users.length === 0) {
-            console.log('🔧 Creating default admin...');
             const hash = await this._hashPassword('admin123');
-            const defaultAdmin = [{
+            this._saveUsers([{
                 id: 'user-admin-default',
                 username: 'admin',
                 passwordHash: hash,
                 role: 'admin',
                 isActive: true,
                 createdAt: new Date().toISOString()
-            }];
-            
-            await this._saveUsers(defaultAdmin);
-            console.log('✅ Default admin created: admin / admin123');
+            }]);
+            console.log('✅ Default admin created');
         }
     }
 
-    // ==================== CRUD ====================
     static async createUser(username, password, role = 'cashier') {
         if (!username || username.length < 3) throw new Error('نام کاربری حداقل ۳ کاراکتر');
         if (!password || password.length < 4) throw new Error('رمز عبور حداقل ۴ کاراکتر');
-
-        const users = await this._getUsers();
-        
+        const users = this._getUsers();
         if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-            throw new Error('این نام کاربری قبلاً استفاده شده است');
+            throw new Error('این نام کاربری قبلاً استفاده شده');
         }
-
         const hash = await this._hashPassword(password);
         const newUser = {
             id: 'user-' + Date.now(),
@@ -140,35 +164,32 @@ class AuthManager {
             isActive: true,
             createdAt: new Date().toISOString()
         };
-        
         users.push(newUser);
-        await this._saveUsers(users);
+        this._saveUsers(users);
         return newUser;
     }
 
     static async updateUser(userId, updates) {
-        const users = await this._getUsers();
+        const users = this._getUsers();
         const index = users.findIndex(u => u.id === userId);
         if (index === -1) throw new Error('کاربر یافت نشد');
-
         if (updates.username) users[index].username = updates.username.trim();
         if (updates.role) users[index].role = updates.role;
         if (updates.password) users[index].passwordHash = await this._hashPassword(updates.password);
         if (updates.isActive !== undefined) users[index].isActive = updates.isActive;
-
-        await this._saveUsers(users);
+        this._saveUsers(users);
         return users[index];
     }
 
     static async deleteUser(userId) {
-        const users = await this._getUsers();
-        await this._saveUsers(users.filter(u => u.id !== userId));
+        const users = this._getUsers();
+        this._saveUsers(users.filter(u => u.id !== userId));
     }
 
     // ==================== HASH ====================
     static async _hashPassword(password) {
         const encoder = new TextEncoder();
-        const data = encoder.encode(password);
+        const data = encoder.encode(password + 'ARA_Coffee_Salt_2026');
         const hashBuffer = await crypto.subtle.digest('SHA-256', data);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -177,7 +198,7 @@ class AuthManager {
     // ==================== SESSION ====================
     static logout() {
         localStorage.removeItem('ara_session');
-        window.location.href = '/login.html';
+        window.location.href = './login.html';
     }
 
     static isLoggedIn() {
@@ -197,5 +218,18 @@ class AuthManager {
             } catch (e) {}
         }
         return this.currentUser;
+    }
+
+    static getUserRole() {
+        const user = this.getCurrentUser();
+        return user ? user.role : null;
+    }
+
+    static isAdmin() {
+        return this.getUserRole() === 'admin';
+    }
+
+    static isCashier() {
+        return this.getUserRole() === 'cashier';
     }
 }
