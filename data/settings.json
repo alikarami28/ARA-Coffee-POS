@@ -8,16 +8,8 @@
   "taxRate": 10,
   "discountPercent": 0,
   "printerType": "80mm",
-  "theme": "light",
+  "theme": "\"light\"",
   "users": [
-    {
-      "id": "user-admin-default",
-      "username": "admin",
-      "passwordHash": "0e69718596ce60c7acad14e759a17780a2b2978067fa80de166efd9cc9bf2090",
-      "role": "admin",
-      "isActive": true,
-      "createdAt": "2026-06-09T14:41:04.434Z"
-    },
     {
       "id": "user-1781029314992",
       "username": "Alikarami28",
