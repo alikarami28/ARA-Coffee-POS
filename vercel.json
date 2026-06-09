@@ -9,27 +9,31 @@
   ],
   "routes": [
     {
-      "src": "/menu",
+      "src": "/menu.html",
       "dest": "/menu.html"
     },
     {
-      "src": "/login",
+      "src": "/index.html",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/login.html",
       "dest": "/login.html"
     },
     {
-      "src": "/admin",
+      "src": "/admin.html",
       "dest": "/admin.html"
     },
     {
-      "src": "/orders",
+      "src": "/orders.html",
       "dest": "/orders.html"
     },
     {
-      "src": "/reports",
+      "src": "/reports.html",
       "dest": "/reports.html"
     },
     {
-      "src": "/settings",
+      "src": "/settings.html",
       "dest": "/settings.html"
     },
     {
@@ -39,28 +43,40 @@
   ],
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
       "source": "/menu",
-      "destination": "/menu.html"
+      "destination": "/menu.html",
+      "permanent": true
     },
     {
       "source": "/login",
-      "destination": "/login.html"
+      "destination": "/login.html",
+      "permanent": true
     },
     {
       "source": "/admin",
-      "destination": "/admin.html"
+      "destination": "/admin.html",
+      "permanent": true
     },
     {
       "source": "/orders",
-      "destination": "/orders.html"
+      "destination": "/orders.html",
+      "permanent": true
     },
     {
       "source": "/reports",
-      "destination": "/reports.html"
+      "destination": "/reports.html",
+      "permanent": true
     },
     {
       "source": "/settings",
-      "destination": "/settings.html"
+      "destination": "/settings.html",
+      "permanent": true
     }
   ],
   "headers": [
@@ -82,6 +98,10 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
         }
       ]
     },
@@ -100,6 +120,10 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=86400"
+        },
+        {
+          "key": "Content-Type",
+          "value": "text/css; charset=utf-8"
         }
       ]
     },
@@ -109,6 +133,10 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=86400"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
         }
       ]
     },
@@ -117,7 +145,60 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache"
+          "value": "no-cache, must-revalidate"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.html)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        },
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.png)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.jpg)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.svg)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }
