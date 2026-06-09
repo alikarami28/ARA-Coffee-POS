@@ -1,8 +1,9 @@
-// settings.js - Settings Page with User Management (Complete)
+// settings.js - Settings Page with Permission Management (Complete)
 class SettingsPage {
     static async init() {
         console.log('🔧 SettingsPage init');
         await this.loadSettings();
+        this.loadPermissions();
         this.loadUsers();
         this.setupForm();
         this.setupGitHub();
@@ -35,6 +36,81 @@ class SettingsPage {
         if (el) el.value = value;
     }
 
+    // ==================== PERMISSION MANAGEMENT ====================
+    static loadPermissions() {
+        const container = document.getElementById('permissions-list');
+        if (!container) return;
+
+        const permissions = AuthManager._getPermissions();
+        const roles = AuthManager.ROLE_LIST || [
+            { id: 'admin', name: 'مدیر', icon: '👑' },
+            { id: 'cashier', name: 'صندوق‌دار', icon: '💼' }
+        ];
+        const pages = AuthManager.PAGE_LIST || [
+            { id: 'pos', name: 'صندوق فروش', icon: '🛒' },
+            { id: 'admin.html', name: 'مدیریت محصولات', icon: '⚙️' },
+            { id: 'orders.html', name: 'تاریخچه سفارشات', icon: '📋' },
+            { id: 'reports.html', name: 'گزارشات', icon: '📊' },
+            { id: 'settings.html', name: 'تنظیمات', icon: '🔧' },
+            { id: 'menu.html', name: 'منوی کافه', icon: '🍽️' }
+        ];
+
+        let html = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">';
+        
+        // Header
+        html += '<thead><tr style="background:var(--bg-secondary);">';
+        html += '<th style="padding:10px;text-align:right;border-bottom:2px solid var(--color-primary);">📄 صفحه</th>';
+        roles.forEach(role => {
+            if (role.id !== 'admin') {
+                html += `<th style="padding:10px;text-align:center;border-bottom:2px solid var(--color-primary);">${role.icon} ${role.name}</th>`;
+            }
+        });
+        html += '</tr></thead><tbody>';
+
+        // Rows
+        pages.forEach(page => {
+            html += '<tr>';
+            html += `<td style="padding:10px;border-bottom:1px solid var(--glass-border);">${page.icon} ${page.name}</td>`;
+            roles.forEach(role => {
+                if (role.id !== 'admin') {
+                    const allowed = permissions[role.id]?.[page.id] !== false;
+                    html += `
+                        <td style="padding:10px;text-align:center;border-bottom:1px solid var(--glass-border);">
+                            <label class="switch">
+                                <input type="checkbox" 
+                                       data-role="${role.id}" 
+                                       data-page="${page.id}" 
+                                       ${allowed ? 'checked' : ''}
+                                       onchange="SettingsPage.togglePermission('${role.id}', '${page.id}', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </td>`;
+                }
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        html += '<div style="margin-top:12px;text-align:left;">';
+        html += '<button type="button" class="btn-secondary" onclick="SettingsPage.resetPermissions()" style="font-size:0.8rem;">🔄 بازنشانی به حالت پیش‌فرض</button>';
+        html += '</div>';
+
+        container.innerHTML = html;
+    }
+
+    static togglePermission(role, page, allowed) {
+        AuthManager.setPagePermission(role, page, allowed);
+        UI.showToast('info', `دسترسی ${role === 'cashier' ? 'صندوق‌دار' : role} به ${page} ${allowed ? '✅ فعال' : '❌ غیرفعال'} شد`);
+    }
+
+    static resetPermissions() {
+        if (confirm('آیا از بازنشانی دسترسی‌ها به حالت پیش‌فرض اطمینان دارید؟')) {
+            AuthManager.resetPermissions();
+            this.loadPermissions();
+            UI.showToast('success', '✅ دسترسی‌ها به حالت پیش‌فرض بازگشت');
+        }
+    }
+
     // ==================== USER MANAGEMENT ====================
     static loadUsers() {
         const users = JSON.parse(localStorage.getItem('ara_users') || '[]');
@@ -53,17 +129,13 @@ class SettingsPage {
                     <span style="font-size:0.75rem;color:var(--text-light);margin-right:8px;">
                         ${user.role === 'admin' ? '👑 مدیر' : '💼 صندوق‌دار'}
                     </span>
+                    ${!user.isActive ? '<span style="font-size:0.7rem;color:#e74c3c;">(غیرفعال)</span>' : ''}
                 </div>
                 <div style="display:flex;gap:6px;">
-                    <button type="button" class="btn-sm" onclick="SettingsPage.editUser('${user.id}')" 
-                            style="background:#2196F3;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">
-                        ✏️ رمز
-                    </button>
+                    <button type="button" class="btn-sm" onclick="SettingsPage.editUser('${user.id}')" style="background:#2196F3;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✏️ رمز</button>
+                    <button type="button" class="btn-sm" onclick="SettingsPage.toggleUserStatus('${user.id}')" style="background:${user.isActive ? '#FF9800' : '#4CAF50'};color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">${user.isActive ? '🚫 غیرفعال' : '✅ فعال'}</button>
                     ${user.role !== 'admin' || users.filter(u => u.role === 'admin').length > 1 ? 
-                        `<button type="button" class="btn-sm" onclick="SettingsPage.deleteUser('${user.id}')" 
-                                style="background:#f44336;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">
-                            🗑️
-                        </button>` : ''}
+                        `<button type="button" class="btn-sm" onclick="SettingsPage.deleteUser('${user.id}')" style="background:#f44336;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">🗑️</button>` : ''}
                 </div>
             </div>
         `).join('');
@@ -107,7 +179,30 @@ class SettingsPage {
         try {
             await AuthManager.updateUser(userId, { password: newPassword || undefined });
             this.loadUsers();
-            UI.showToast('success', '✅ رمز عبور بروزرسانی و در GitHub ذخیره شد');
+            UI.showToast('success', '✅ رمز عبور بروزرسانی شد');
+        } catch (e) {
+            UI.showToast('error', e.message);
+        }
+    }
+
+    static async toggleUserStatus(userId) {
+        const users = JSON.parse(localStorage.getItem('ara_users') || '[]');
+        const user = users.find(u => u.id === userId);
+        if (!user) return;
+
+        // نمی‌تونیم آخرین مدیر رو غیرفعال کنیم
+        if (user.role === 'admin' && user.isActive) {
+            const activeAdmins = users.filter(u => u.role === 'admin' && u.isActive);
+            if (activeAdmins.length <= 1) {
+                UI.showToast('warning', 'نمی‌توان آخرین مدیر فعال را غیرفعال کرد');
+                return;
+            }
+        }
+
+        try {
+            await AuthManager.updateUser(userId, { isActive: !user.isActive });
+            this.loadUsers();
+            UI.showToast('info', `کاربر ${user.isActive ? 'غیرفعال' : 'فعال'} شد`);
         } catch (e) {
             UI.showToast('error', e.message);
         }
@@ -117,6 +212,11 @@ class SettingsPage {
         const users = JSON.parse(localStorage.getItem('ara_users') || '[]');
         const user = users.find(u => u.id === userId);
         if (!user) return;
+
+        if (user.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1) {
+            UI.showToast('warning', 'نمی‌توان آخرین مدیر را حذف کرد');
+            return;
+        }
 
         if (!confirm(`آیا از حذف کاربر "${user.username}" اطمینان دارید؟`)) return;
 
@@ -138,19 +238,11 @@ class SettingsPage {
     }
 
     static async saveSettings() {
-        // Get current settings from GitHub first (to preserve users)
         let currentSettings = {};
-        try {
-            currentSettings = await DB.getSettings();
-        } catch (e) {
-            currentSettings = {};
-        }
+        try { currentSettings = await DB.getSettings(); } catch (e) {}
 
-        // Preserve existing users from localStorage AND GitHub
         const githubUsers = currentSettings.users || [];
         const localUsers = JSON.parse(localStorage.getItem('ara_users') || '[]');
-        
-        // Merge users (GitHub priority, but keep all)
         const allUsers = [...githubUsers];
         localUsers.forEach(localUser => {
             if (!allUsers.find(u => u.id === localUser.id)) {
@@ -172,7 +264,6 @@ class SettingsPage {
             users: allUsers
         };
 
-        // Save GitHub config
         const ghOwner = document.getElementById('github-owner')?.value?.trim();
         const ghRepo = document.getElementById('github-repo')?.value?.trim();
         const ghBranch = document.getElementById('github-branch')?.value?.trim();
@@ -183,16 +274,10 @@ class SettingsPage {
         if (ghBranch) localStorage.setItem('ara_github_branch', ghBranch);
         if (ghToken) localStorage.setItem('ara_github_token', ghToken);
 
-        // Save settings to localStorage (except users)
         Object.entries(settings).forEach(([key, value]) => {
-            if (key !== 'users') {
-                localStorage.setItem('ara_' + key, JSON.stringify(value));
-            }
+            if (key !== 'users') localStorage.setItem('ara_' + key, JSON.stringify(value));
         });
 
-        console.log('💾 Saving settings with', settings.users?.length || 0, 'users');
-
-        // Save to GitHub
         UI.showToast('info', '⏳ در حال ذخیره در GitHub...');
         const result = await DB.saveSettings(settings);
 
@@ -209,6 +294,7 @@ class SettingsPage {
             const token = document.getElementById('github-token')?.value?.trim();
             if (!token) { UI.showToast('warning', 'توکن را وارد کنید'); return; }
             localStorage.setItem('ara_github_token', token);
+            UI.showToast('info', '⏳ تست اتصال...');
             const result = await DB.testConnection();
             if (result.success) UI.showToast('success', result.message);
             else UI.showToast('error', result.message);
@@ -219,13 +305,9 @@ class SettingsPage {
             UI.showToast('info', '⏳ همگام‌سازی...');
             try {
                 const [p, c, o] = await Promise.all([DB.getProducts(), DB.getCategories(), DB.getOrders()]);
-                await DB.saveProducts(p);
-                await DB.saveCategories(c);
-                await DB.saveOrders(o);
+                await DB.saveProducts(p); await DB.saveCategories(c); await DB.saveOrders(o);
                 UI.showToast('success', '✅ همگام‌سازی شد');
-            } catch (e) {
-                UI.showToast('error', '❌ ' + e.message);
-            }
+            } catch (e) { UI.showToast('error', '❌ ' + e.message); }
         });
     }
 
@@ -234,14 +316,7 @@ class SettingsPage {
         document.getElementById('btn-export-backup')?.addEventListener('click', async () => {
             const [p, c, o] = await Promise.all([DB.getProducts(), DB.getCategories(), DB.getOrders()]);
             const u = JSON.parse(localStorage.getItem('ara_users') || '[]');
-            const backup = {
-                version: '1.0',
-                exportDate: new Date().toISOString(),
-                products: p,
-                categories: c,
-                orders: o,
-                users: u
-            };
+            const backup = { version: '1.0', exportDate: new Date().toISOString(), products: p, categories: c, orders: o, users: u };
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -250,9 +325,7 @@ class SettingsPage {
             UI.showToast('success', '✅ بکاپ دانلود شد');
         });
 
-        document.getElementById('btn-import-backup')?.addEventListener('click', () => {
-            document.getElementById('import-file')?.click();
-        });
+        document.getElementById('btn-import-backup')?.addEventListener('click', () => document.getElementById('import-file')?.click());
 
         document.getElementById('import-file')?.addEventListener('change', async (e) => {
             if (!e.target.files[0]) return;
@@ -270,9 +343,7 @@ class SettingsPage {
                     }
                     UI.showToast('success', '✅ بازیابی شد');
                     setTimeout(() => location.reload(), 2000);
-                } catch (err) {
-                    UI.showToast('error', '❌ فایل نامعتبر');
-                }
+                } catch (err) { UI.showToast('error', '❌ فایل نامعتبر'); }
             };
             reader.readAsText(e.target.files[0]);
         });
