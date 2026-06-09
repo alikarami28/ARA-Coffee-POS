@@ -25,6 +25,14 @@
       "role": "admin",
       "isActive": true,
       "createdAt": "2026-06-08T21:06:28.288Z"
+    },
+    {
+      "id": "user-1781012848419",
+      "username": "Armin",
+      "passwordHash": "b07139e0595e9b4d872d1fbcdd9c8e7688409c098965da0bb3cf2c426b402acb",
+      "role": "cashier",
+      "isActive": true,
+      "createdAt": "2026-06-09T13:47:28.419Z"
     }
   ]
 }
