@@ -19,20 +19,20 @@
       "createdAt": "2026-06-09T18:21:54.992Z"
     },
     {
+      "id": "user-1781029445454",
+      "username": "Armin",
+      "passwordHash": "b07139e0595e9b4d872d1fbcdd9c8e7688409c098965da0bb3cf2c426b402acb",
+      "role": "cashier",
+      "isActive": true,
+      "createdAt": "2026-06-09T18:24:05.454Z"
+    },
+    {
       "id": "user-1781029655692",
       "username": "Armin",
       "passwordHash": "b07139e0595e9b4d872d1fbcdd9c8e7688409c098965da0bb3cf2c426b402acb",
       "role": "cashier",
       "isActive": true,
       "createdAt": "2026-06-09T18:27:35.692Z"
-    },
-    {
-      "id": "user-admin-default",
-      "username": "admin",
-      "passwordHash": "0e69718596ce60c7acad14e759a17780a2b2978067fa80de166efd9cc9bf2090",
-      "role": "admin",
-      "isActive": true,
-      "createdAt": "2026-06-09T21:04:32.336Z"
     }
   ]
 }
