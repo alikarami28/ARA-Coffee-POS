@@ -1,5 +1,5 @@
 // ui.js - UI Utilities with Dynamic Role-Based UI
-// Version: 2.0 - Complete
+// Version: 3.0 - Fixed Permission Check
 
 class UI {
     // ==================== FORMAT HELPERS ====================
@@ -21,40 +21,28 @@ class UI {
         if (!dateString) return '';
         try {
             return new Date(dateString).toLocaleDateString('fa-IR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
             });
-        } catch (e) {
-            return dateString;
-        }
+        } catch (e) { return dateString; }
     }
 
-    // ==================== TOAST NOTIFICATIONS ====================
+    // ==================== TOAST ====================
     
     static showToast(type, message, duration = 3000) {
         const container = document.getElementById('toast-container');
-        if (!container) {
-            console.log('Toast:', type, message);
-            return;
-        }
-
+        if (!container) { console.log('Toast:', type, message); return; }
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
         container.appendChild(toast);
-
         setTimeout(() => {
             toast.style.animation = 'slideDown 0.3s ease forwards';
-            setTimeout(() => {
-                if (toast.parentNode) toast.remove();
-            }, 300);
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
         }, duration);
     }
 
-    // ==================== THEME MANAGEMENT ====================
+    // ==================== THEME ====================
     
     static applySavedTheme() {
         const theme = localStorage.getItem('ara_theme') || 'light';
@@ -68,18 +56,16 @@ class UI {
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('ara_theme', next);
         this.updateThemeToggleButton();
-        console.log('🌓 Theme changed to:', next);
     }
 
     static updateThemeToggleButton() {
         const icon = document.querySelector('.theme-icon');
         if (icon) {
-            const theme = document.documentElement.getAttribute('data-theme') || 'light';
-            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            icon.textContent = (document.documentElement.getAttribute('data-theme') || 'light') === 'dark' ? '☀️' : '🌙';
         }
     }
 
-    // ==================== USER INFO DISPLAY ====================
+    // ==================== USER INFO & PERMISSIONS ====================
     
     static displayUserInfo() {
         const user = AuthManager.getCurrentUser();
@@ -88,256 +74,137 @@ class UI {
         const nameEl = document.getElementById('current-user-display');
         const avatarEl = document.getElementById('user-avatar');
         
-        // نمایش نام کاربر
-        if (nameEl) {
-            nameEl.textContent = user.username + (user.role === 'admin' ? ' 👑' : ' 💼');
-        }
-        
-        // نمایش آواتار
+        if (nameEl) nameEl.textContent = user.username + (user.role === 'admin' ? ' 👑' : ' 💼');
         if (avatarEl) {
             avatarEl.textContent = user.username.charAt(0).toUpperCase();
             avatarEl.style.background = user.role === 'admin' ? '#8B4513' : '#2196F3';
         }
 
-        // مخفی کردن منوهای غیرمجاز برای کاربران غیر مدیر
+        // برای غیر مدیر، دسترسی‌ها رو اعمال کن
         if (user.role !== 'admin') {
             this.applyRolePermissions(user.role);
-        }
-        
-        // نمایش پیام خوش‌آمد برای صندوق‌دار
-        if (user.role === 'cashier') {
-            console.log('💼 Cashier logged in:', user.username);
-            console.log('🔒 Limited access mode active');
         }
     }
 
     /**
-     * اعمال محدودیت‌های دسترسی بر اساس نقش کاربر
-     * @param {string} role - نقش کاربر (cashier, etc.)
+     * اعمال محدودیت دسترسی بر اساس نقش
+     * چک می‌کنه کدوم صفحات مجاز هستن و کدوم نیستن
      */
     static applyRolePermissions(role) {
+        // گرفتن تنظیمات دسترسی از AuthManager
         const permissions = AuthManager._getPermissions();
         const rolePerms = permissions[role] || {};
         
-        console.log('🔒 Applying permissions for role:', role);
-        console.log('📋 Permissions:', rolePerms);
+        console.log('🔒 Role:', role);
+        console.log('📋 Permissions:', JSON.stringify(rolePerms));
         
-        // مخفی کردن آیتم‌های منو
+        // لیست تمام صفحات و mapping
+        const pageMapping = {
+            'index.html': 'pos',
+            'pos': 'pos',
+            'admin.html': 'admin.html',
+            'orders.html': 'orders.html',
+            'reports.html': 'reports.html',
+            'settings.html': 'settings.html',
+            'menu.html': 'menu.html'
+        };
+        
         document.querySelectorAll('.nav-link').forEach(link => {
             const href = link.getAttribute('href');
             if (!href) return;
             
-            // استخراج نام صفحه از href
-            let pageName = href.replace('./', '').split('?')[0].split('#')[0];
+            // استخراج نام فایل از href
+            let fileName = href.replace('./', '').split('?')[0].split('#')[0];
             
-            // نگاشت نام‌های خاص
-            if (pageName === 'index.html' || pageName === '' || pageName === 'index') {
-                pageName = 'pos';
-            }
+            // پیدا کردن کلید permissions
+            let permKey = pageMapping[fileName] || fileName;
             
-            // چک دسترسی
-            const allowed = rolePerms[pageName];
+            // چک دسترسی - اگه false باشه مخفی کن
+            // اگه true باشه یا undefined باشه (تنظیم نشده) نشون بده
+            const allowed = rolePerms[permKey];
+            
+            console.log(`🔍 ${fileName} → ${permKey}: ${allowed === false ? '❌ مخفی' : '✅ نمایش'}`);
             
             if (allowed === false) {
                 link.style.display = 'none';
-                console.log('🙈 Hidden:', pageName);
             } else {
                 link.style.display = '';
-                console.log('👁️ Visible:', pageName);
             }
-        });
-        
-        // مخفی کردن عناصر با کلاس admin-only
-        document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = 'none';
-            console.log('🙈 Hidden admin-only element');
         });
     }
 
-    // ==================== KEYBOARD SHORTCUTS ====================
+    // ==================== SHORTCUTS ====================
     
     static setupShortcuts() {
         document.addEventListener('keydown', (e) => {
-            // F2: فوکوس روی جستجو
-            if (e.key === 'F2') {
-                e.preventDefault();
-                const searchInput = document.getElementById('pos-search') || document.getElementById('product-search');
-                if (searchInput) searchInput.focus();
-            }
-            
-            // F4: خالی کردن سبد خرید
-            if (e.key === 'F4') {
-                e.preventDefault();
-                if (typeof Cart !== 'undefined') {
-                    Cart.clearCart();
-                    this.showToast('info', 'سبد خرید خالی شد');
-                }
-            }
-            
-            // F8: پرداخت
-            if (e.key === 'F8') {
-                e.preventDefault();
-                const checkoutBtn = document.getElementById('checkout-btn');
-                if (checkoutBtn) checkoutBtn.click();
-            }
-            
-            // Ctrl+T: تغییر تم
-            if (e.ctrlKey && e.key === 't') {
-                e.preventDefault();
-                this.toggleTheme();
-            }
-            
-            // ESC: بستن مودال‌ها
+            if (e.key === 'F2') { e.preventDefault(); const s = document.getElementById('pos-search') || document.getElementById('product-search'); if(s) s.focus(); }
+            if (e.key === 'F4') { e.preventDefault(); if (typeof Cart !== 'undefined') { Cart.clearCart(); this.showToast('info', 'سبد خرید خالی شد'); } }
+            if (e.key === 'F8') { e.preventDefault(); const c = document.getElementById('checkout-btn'); if(c) c.click(); }
+            if (e.ctrlKey && e.key === 't') { e.preventDefault(); this.toggleTheme(); }
             if (e.key === 'Escape') {
-                const modals = document.querySelectorAll('.modal-overlay.open, .modal.open');
-                if (modals.length > 0) {
-                    e.preventDefault();
-                    modals.forEach(modal => modal.classList.remove('open'));
-                }
-                // بستن سایدبار
-                const sideNav = document.getElementById('side-nav');
-                const overlay = document.getElementById('side-nav-overlay');
-                if (sideNav && sideNav.classList.contains('open')) {
-                    sideNav.classList.remove('open');
-                    if (overlay) overlay.classList.remove('active');
-                }
+                document.querySelectorAll('.modal-overlay.open, .modal.open').forEach(m => m.classList.remove('open'));
+                const sn = document.getElementById('side-nav'), ov = document.getElementById('side-nav-overlay');
+                if (sn?.classList.contains('open')) { sn.classList.remove('open'); if(ov) ov.classList.remove('active'); }
             }
         });
     }
 
-    // ==================== DATE & TIME ====================
+    // ==================== DATE TIME ====================
     
     static updateDateTime() {
         const el = document.getElementById('current-datetime');
         if (!el) return;
-        
         const update = () => {
-            try {
-                const now = new Date();
-                el.textContent = now.toLocaleString('fa-IR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                });
-            } catch (e) {
-                el.textContent = new Date().toLocaleString();
-            }
+            try { el.textContent = new Date().toLocaleString('fa-IR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false }); } catch(e) {}
         };
-        
-        update();
-        setInterval(update, 1000);
+        update(); setInterval(update, 1000);
     }
 
-    // ==================== THEME TOGGLE BUTTON ====================
+    // ==================== THEME TOGGLE ====================
     
     static initThemeToggle() {
-        const toggleBtn = document.getElementById('theme-toggle');
-        if (toggleBtn) {
-            // حذف event listener قبلی
-            const newBtn = toggleBtn.cloneNode(true);
-            toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
-            
-            newBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleTheme();
-            });
-            
-            console.log('🌓 Theme toggle initialized');
+        const btn = document.getElementById('theme-toggle');
+        if (btn) {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            newBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); this.toggleTheme(); });
         }
     }
 
-    // ==================== INITIALIZATION ====================
+    // ==================== INIT ====================
     
     static init() {
         this.applySavedTheme();
         this.updateDateTime();
         this.initThemeToggle();
         this.setupShortcuts();
-        
-        // نمایش اطلاعات کاربر بعد از لود کامل
         if (typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn()) {
             this.displayUserInfo();
         }
-        
         console.log('✅ UI initialized');
     }
 
-    // ==================== CONFIRM DIALOG ====================
+    // ==================== UTILS ====================
     
-    static confirm(message) {
-        return window.confirm(message);
-    }
-
-    // ==================== NOTIFICATION BADGE ====================
+    static confirm(msg) { return window.confirm(msg); }
     
-    static updateCartBadge(count) {
-        const badge = document.getElementById('cart-badge');
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
+    static showLoading(msg = '⏳ لطفاً صبر کنید...') {
+        const ex = document.getElementById('global-loading'); if(ex) ex.remove();
+        const ld = document.createElement('div'); ld.id = 'global-loading';
+        ld.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:Tahoma;';
+        ld.innerHTML = `<div style="background:#fff;border-radius:16px;padding:30px 40px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.3);"><div style="font-size:3rem;margin-bottom:12px;">⏳</div><p style="color:#333;">${msg}</p></div>`;
+        document.body.appendChild(ld);
     }
-
-    // ==================== LOADING INDICATOR ====================
     
-    static showLoading(message = '⏳ لطفاً صبر کنید...') {
-        const existing = document.getElementById('global-loading');
-        if (existing) existing.remove();
-
-        const loading = document.createElement('div');
-        loading.id = 'global-loading';
-        loading.style.cssText = `
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5); z-index: 99999;
-            display: flex; align-items: center; justify-content: center;
-            font-family: Tahoma, sans-serif;
-        `;
-        loading.innerHTML = `
-            <div style="background: #fff; border-radius: 16px; padding: 30px 40px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
-                <div style="font-size: 3rem; margin-bottom: 12px; animation: spin 1s linear infinite;">⏳</div>
-                <p style="color: #333; font-size: 1rem;">${message}</p>
-            </div>
-        `;
-        document.body.appendChild(loading);
-    }
-
-    static hideLoading() {
-        const loading = document.getElementById('global-loading');
-        if (loading) loading.remove();
-    }
-
-    // ==================== DEBOUNCE ====================
+    static hideLoading() { const ld = document.getElementById('global-loading'); if(ld) ld.remove(); }
     
-    static debounce(func, delay = 300) {
-        let timeout;
-        return function(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), delay);
-        };
-    }
+    static debounce(func, delay = 300) { let t; return function(...a) { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay); }; }
 }
 
-// ==================== AUTO INIT ====================
+// Auto init
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', () => UI.init()); }
+else { UI.init(); }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => UI.init());
-} else {
-    UI.init();
-}
+if (typeof window !== 'undefined') { window.UI = UI; }
 
-// ==================== EXPORT FOR GLOBAL ACCESS ====================
-
-if (typeof window !== 'undefined') {
-    window.UI = UI;
-}
-
-console.log('🎨 UI module loaded');
+console.log('🎨 UI module v3.0 loaded');
