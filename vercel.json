@@ -7,41 +7,17 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
-    {
-      "src": "/menu.html",
-      "dest": "/menu.html"
-    },
-    {
-      "src": "/index.html",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/login.html",
-      "dest": "/login.html"
-    },
-    {
-      "src": "/admin.html",
-      "dest": "/admin.html"
-    },
-    {
-      "src": "/orders.html",
-      "dest": "/orders.html"
-    },
-    {
-      "src": "/reports.html",
-      "dest": "/reports.html"
-    },
-    {
-      "src": "/settings.html",
-      "dest": "/settings.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
   "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "menu.ariyawp.ir"
+        }
+      ],
+      "destination": "/menu.html"
+    },
     {
       "source": "/",
       "destination": "/index.html"
@@ -56,26 +32,6 @@
     {
       "source": "/login",
       "destination": "/login.html",
-      "permanent": true
-    },
-    {
-      "source": "/admin",
-      "destination": "/admin.html",
-      "permanent": true
-    },
-    {
-      "source": "/orders",
-      "destination": "/orders.html",
-      "permanent": true
-    },
-    {
-      "source": "/reports",
-      "destination": "/reports.html",
-      "permanent": true
-    },
-    {
-      "source": "/settings",
-      "destination": "/settings.html",
       "permanent": true
     }
   ],
@@ -94,107 +50,11 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
         }
       ]
     },
     {
       "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.css)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        },
-        {
-          "key": "Content-Type",
-          "value": "text/css; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.js)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/javascript; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.json)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, must-revalidate"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/json; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.html)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, must-revalidate"
-        },
-        {
-          "key": "Content-Type",
-          "value": "text/html; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.ico)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.png)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.jpg)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.svg)",
       "headers": [
         {
           "key": "Cache-Control",
