@@ -1,24 +1,22 @@
 {
-  "cafeName": "ARA Cafe",
-  "address": "تهران ، خیابان آذربایجان",
-  "phone": "۰۹۹۲۸۹۹۱۲۷۴",
+  "cafeName": "ARA Coffee",
+  "address": "",
+  "phone": "",
   "instagram": "",
   "website": "",
   "currency": "تومان",
   "taxRate": 10,
   "discountPercent": 0,
-  "printerType": "80mm",
-  "theme": "\"light\"",
+  "printerType": "58mm",
+  "theme": "light",
   "users": [
-
-  
     {
-      "id": "user-1781015667087",
-      "username": "Armin",
-      "passwordHash": "b07139e0595e9b4d872d1fbcdd9c8e7688409c098965da0bb3cf2c426b402acb",
-      "role": "cashier",
+      "id": "user-admin-default",
+      "username": "admin",
+      "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+      "role": "admin",
       "isActive": true,
-      "createdAt": "2026-06-09T14:34:27.087Z"
+      "createdAt": "2026-06-08T00:00:00Z"
     }
   ]
 }
