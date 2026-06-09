@@ -1,14 +1,14 @@
 {
   "cafeName": "ARA Coffee",
-  "address": "تهران خیابان آذربایجان",
-  "phone": "۰۹۹۲۸۹۹۱۲۷۴",
+  "address": "",
+  "phone": "",
   "instagram": "",
-  "website": "aracafe.ir",
+  "website": "",
   "currency": "تومان",
-  "taxRate": 10,
+  "taxRate": 9,
   "discountPercent": 0,
-  "printerType": "80mm",
-  "theme": "\"light\"",
+  "printerType": "58mm",
+  "theme": "light",
   "users": [
     {
       "id": "user-1781029314992",
