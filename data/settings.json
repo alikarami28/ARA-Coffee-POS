@@ -11,12 +11,28 @@
   "theme": "light",
   "users": [
     {
+      "id": "user-admin-default",
+      "username": "admin",
+      "passwordHash": "0e69718596ce60c7acad14e759a17780a2b2978067fa80de166efd9cc9bf2090",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2026-06-09T21:18:26.153Z"
+    },
+    {
       "id": "user-1781029314992",
       "username": "Alikarami28",
       "passwordHash": "9a2bedf0b91e140ad4914031ffa1042233e35ba49b287fea53f97e98fbb218e8",
       "role": "admin",
       "isActive": true,
       "createdAt": "2026-06-09T18:21:54.992Z"
+    },
+    {
+      "id": "user-1781214535616",
+      "username": "Armin",
+      "passwordHash": "64f23f04876677bdd0e86b4c26252fee944651cf3113d4e623b17d7fc4c2b142",
+      "role": "cashier",
+      "isActive": true,
+      "createdAt": "2026-06-11T21:48:55.616Z"
     }
   ]
 }
